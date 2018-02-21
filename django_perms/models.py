@@ -1,112 +1,113 @@
 from django.conf import settings
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import models, IntegrityError
-from django.utils.functional import cached_property, curry
-from django.utils.translation import ugettext as _
+from django.db import models
+from django.utils.translation import ugettext_lazy as _
 
-from model_utils.models import TimeStampedModel
+from polymorphic.models import PolymorphicModel
 
-
-DEFAULT_PERMISSION_NAMES = {
-    'add': _('Add permission '),
-    'update': _('Update permission '),
-    'delete': _('Delete permission '),
-}
-
-PERMISSION_NAMES = DEFAULT_PERMISSION_NAMES.update(settings.PERMS_PERMISSION_NAMES)
+from django_perms.managers import UserPermissionManager, GroupPermissionManager
 
 
-class BasePermission:
-    ...
-
-
-class Permission(TimeStampedModel):
+class BasePermission(PolymorphicModel):
 
     name = models.CharField(_('name'), max_length=255)
     content_type = models.ForeignKey(
         ContentType,
         models.CASCADE,
         verbose_name=_('content type'),
-        blank=True,
-        null=True,
     )
-    codename = models.CharField(_('codename'), max_length=100, null=True, blank=True)
-    object_pk = models.SmallIntegerField(_('object pk'), null=True, blank=True)
-    field_name = models.CharField(_('field name'), max_length=100, null=True, blank=True)
+    codename = models.CharField(_('codename'), max_length=100)
 
     class Meta:
-        verbose_name = _('permission')
-        verbose_name_plural = _('permissions')
-        ordering = ('codename',)
-        unique_together = ('code', 'content_type', 'object_pk', 'field_name')
+        abstract = True
+
+
+class Permission(BasePermission):
+
+    class Meta:
+        unique_together = ('content_type', 'codename')
+        verbose_name = _('Permission')
+        verbose_name_plural = _('Permissions')
 
     def __str__(self):
-
-        return '%s | %s' % (
-            self.codename,
+        return "%s | %s | %s" % (
+            self.content_type.app_label,
+            self.content_type,
             self.name
         )
 
-    @cached_property
-    def is_model_permission(self):
-        return (
-            self.content_type is not None
-            and self.field_name is None
-            and self.object_pk is None
+
+class GlobalPermission(BasePermission):
+
+    class Meta:
+        unique_together = ('content_type', 'codename')
+        verbose_name = _('Global Permission')
+        verbose_name_plural = _('Global Permissions')
+
+    def save(self, *args, **kwargs):
+        content_type_kwargs = {
+            'app_label': self._meta.app_label,
+            'model': 'globalpermission'
+        }
+        ct, created = ContentType.objects.get_or_create(**content_type_kwargs)
+
+        self.content_type = ct
+        super(GlobalPermission, self).save(*args, **kwargs)
+
+
+class ObjectPermission(BasePermission):
+
+    content_object = GenericForeignKey(fk_field='object_pk')
+
+    class Meta:
+        unique_together = ('content_type', 'codename', 'object_pk')
+        verbose_name = _('Object Permission')
+        verbose_name_plural = _('Object Permissions')
+
+    def __str__(self):
+        return "%s | %s | %s | %s" % (
+            self.content_type.app_label,
+            self.content_type,
+            self.name,
+            self.content_object
         )
 
-    @cached_property
-    def is_object_permission(self):
-        return (
-            self.content_type is not None
-            and self.object_pk is not None
+
+class FieldPermission(BasePermission):
+
+    field_name = models.CharField(_('field name'), max_length=100)
+
+    class Meta:
+        unique_together = ('content_type', 'codename', 'field_name')
+        verbose_name = _('Field Permission')
+        verbose_name_plural = _('Field Permissions')
+
+    def __str__(self):
+        return "%s | %s | %s | %s" % (
+            self.content_type.app_label,
+            self.content_type,
+            self.name,
+            self.field_name
         )
 
-    @cached_property
-    def is_field_permission(self):
-        return self.field_name is not None
 
-    @cached_property
-    def is_generic_permission(self):
-        return (
-            self.content_type is None
-            and self.field_name is None
-            and self.object_pk is None
-            and self.codename
-        )
+class UserPermission(models.Model):
 
-    def get_generated_name(self):
-        permission_name = PERMISSION_NAMES.get(self.codename)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
-        if self.is_model_permission:
-            name = _('for model %s') % (
-                self.model
-            )
-        elif self.is_object_permission:
-            name = _('for object %s on model %s') % (
-                self.instance,
-                self.model
-            )
-        elif self.is_field_permission:
-            name = _('for field %s on model %s') % (
-                self.model._meta.get_field(self.field_name).verbose_name,
-                self.model
-            )
-        else:
-            name = ''
+    objects = UserPermissionManager()
 
-        return ' '.join((permission_name, name))
 
-    @cached_property
-    def model(self):
-        return self.content_type.model
+class GroupPermission(models.Model):
 
-    @cached_property
-    def instance(self):
-        return self.model.get(pk=self.object_pk) if self.is_object_permission else None
+    group = models.ForeignKey(Group)
+    permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        if self.name is None:
-            self.name = self.get_generated_name()
+    objects = GroupPermissionManager()
 
-        super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+
+setattr(Group, 'add_perm', lambda self, perm, obj: GroupPermission.objects.assign_perm(perm, self, obj))
+setattr(Group, 'del_perm', lambda self, perm, obj: GroupPermission.objects.remove_perm(perm, self, obj))
