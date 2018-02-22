@@ -7,3 +7,7 @@ class PermError(Exception):
 
 class ObjectNotPersisted(PermError):
     pass
+
+
+class PermNotUnique(PermError):
+    pass

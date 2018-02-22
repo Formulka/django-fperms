@@ -4,3 +4,4 @@ from django.apps import AppConfig
 
 class DjangoPermsConfig(AppConfig):
     name = 'django_perms'
+

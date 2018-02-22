@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from django_perms.models import Permission
+from django_perms.models import BasePerm
 
 
 class PermPermissionBackend(ModelBackend):
@@ -11,7 +11,7 @@ class PermPermissionBackend(ModelBackend):
     def _get_group_permissions(self, user_obj):
         user_groups_field = get_user_model()._meta.get_field('groups')
         user_groups_query = 'group__%s' % user_groups_field.related_query_name()
-        return Permission.objects.filter(**{user_groups_query: user_obj})
+        return BasePerm.objects.filter(**{user_groups_query: user_obj})
 
     def _get_permissions(self, user_obj, obj, from_name):
         if not user_obj.is_active or user_obj.is_anonymous or obj is not None:
@@ -20,7 +20,7 @@ class PermPermissionBackend(ModelBackend):
         perm_cache_name = '_%s_perm_cache' % from_name
         if not hasattr(user_obj, perm_cache_name):
             if user_obj.is_superuser:
-                perms = Permission.objects.all()
+                perms = BasePerm.objects.all()
             else:
                 perms = getattr(self, '_get_%s_permissions' % from_name)(user_obj)
             perms = perms.values_list('content_type__app_label', 'codename').order_by()
