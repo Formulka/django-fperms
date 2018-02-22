@@ -10,7 +10,7 @@ from polymorphic.models import PolymorphicModel
 from django_perms.managers import UserPermissionManager, GroupPermissionManager
 
 
-class BasePermission(PolymorphicModel):
+class BasePerm(PolymorphicModel):
 
     name = models.CharField(_('name'), max_length=255)
     content_type = models.ForeignKey(
@@ -24,7 +24,7 @@ class BasePermission(PolymorphicModel):
         abstract = True
 
 
-class Permission(BasePermission):
+class Perm(BasePerm):
 
     class Meta:
         unique_together = ('content_type', 'codename')
@@ -39,7 +39,7 @@ class Permission(BasePermission):
         )
 
 
-class GlobalPermission(BasePermission):
+class GlobalPerm(BasePerm):
 
     class Meta:
         unique_together = ('content_type', 'codename')
@@ -54,11 +54,12 @@ class GlobalPermission(BasePermission):
         ct, created = ContentType.objects.get_or_create(**content_type_kwargs)
 
         self.content_type = ct
-        super(GlobalPermission, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
-class ObjectPermission(BasePermission):
+class ObjectPerm(BasePerm):
 
+    object_pk = models.IntegerField()
     content_object = GenericForeignKey(fk_field='object_pk')
 
     class Meta:
@@ -75,7 +76,7 @@ class ObjectPermission(BasePermission):
         )
 
 
-class FieldPermission(BasePermission):
+class FieldPerm(BasePerm):
 
     field_name = models.CharField(_('field name'), max_length=100)
 
@@ -96,7 +97,7 @@ class FieldPermission(BasePermission):
 class UserPermission(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
+    permission = models.ForeignKey(Perm, on_delete=models.CASCADE)
 
     objects = UserPermissionManager()
 
@@ -104,7 +105,7 @@ class UserPermission(models.Model):
 class GroupPermission(models.Model):
 
     group = models.ForeignKey(Group)
-    permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
+    permission = models.ForeignKey(Perm, on_delete=models.CASCADE)
 
     objects = GroupPermissionManager()
 

@@ -8,12 +8,12 @@ class BasePermissionManager(models.Manager):
 
     perm_for = None
 
-    def assign_perm(self, perm, perm_for, obj=None):
+    def assign_perm(self, perm, perm_for, obj=None, field_name=None):
         if obj is not None and not is_obj_persisted(obj):
             raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
 
         ctype = get_content_type(obj)
-        permission = get_permission(perm, ctype)
+        permission = get_permission(perm, ctype, obj, field_name)
 
         obj_perm, _ = self.get_or_create(**{
             self.perm_for: perm_for,
@@ -23,12 +23,12 @@ class BasePermissionManager(models.Manager):
         })
         return obj_perm
 
-    def remove_perm(self, perm, perm_for, obj=None):
+    def remove_perm(self, perm, perm_for, obj=None, field_name=None):
         if obj is not None and not is_obj_persisted(obj):
             raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
 
         ctype = get_content_type(obj)
-        permission = get_permission(perm, ctype)
+        permission = get_permission(perm, ctype, obj, field_name)
 
         return self.filter(**{
             self.perm_for: perm_for,
