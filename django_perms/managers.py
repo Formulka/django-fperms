@@ -4,7 +4,7 @@ from django_perms.exceptions import ObjectNotPersisted
 from django_perms.utils import is_obj_persisted, get_content_type, get_perm
 
 
-class BasePermissionManager(models.Manager):
+class BasePermManager(models.Manager):
 
     perm_for = None
 
@@ -12,11 +12,11 @@ class BasePermissionManager(models.Manager):
         if obj is not None and not is_obj_persisted(obj):
             raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
 
-        permission = get_perm(perm, model, obj, field_name)
+        perm = get_perm(perm, model, obj, field_name)
 
         obj_perm, _ = self.get_or_create(**{
             self.perm_for: perm_for,
-            'permission': permission,
+            'perm': perm,
         })
         return obj_perm
 
@@ -24,19 +24,28 @@ class BasePermissionManager(models.Manager):
         if obj is not None and not is_obj_persisted(obj):
             raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
 
-        permission = get_perm(perm, model, obj, field_name)
+        perm = get_perm(perm, model, obj, field_name)
 
         return self.filter(**{
             self.perm_for: perm_for,
-            'permission': permission,
+            'perm': perm,
         }).delete()
 
+    def get_all_perms(self, perm_for):
+        from django_perms.models import Perm
 
-class UserPermissionManager(BasePermissionManager):
+        perm_pks = self.get_queryset().filter(**{
+            self.perm_for: perm_for,
+        }).values_list('perm__pk', flat=True)
+
+        return Perm.objects.filter(pk__in=perm_pks)
+
+
+class UserPermManager(BasePermManager):
 
     perm_for = 'user'
 
 
-class GroupPermissionManager(BasePermissionManager):
+class GroupPermManager(BasePermManager):
 
     perm_for = 'group'

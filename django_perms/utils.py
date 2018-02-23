@@ -6,26 +6,20 @@ def is_obj_persisted(obj):
 
 
 def get_content_type(obj):
-    from django_perms.models import GlobalPerm
-
-    # if the obj in question is None, assume it is a global permission
-    return ContentType.objects.get_for_model(obj) if obj is not None else GlobalPerm
+    return ContentType.objects.get_for_model(obj)
 
 
 def get_perm(perm, model=None, obj=None, field_name=None):
-    from django_perms.models import Perm, GlobalPerm, ObjectPerm, FieldPerm
+    from django_perms.models import Perm
 
-    ctype = get_content_type(model or obj)
+    content_type = get_content_type(model or obj) if model or obj else None
 
     if not isinstance(perm, Perm):
-        if field_name is not None:
-            model = FieldPerm
-        elif obj is not None:
-            model = ObjectPerm
-        elif ctype == GlobalPerm:
-            model = GlobalPerm
-        else:
-            model = Perm
-        return model.objects.get(content_type=ctype, codename=perm)
-    else:
-        return perm
+        perm = Perm.objects.get(
+            codename=perm,
+            content_type=content_type,
+            object_id=obj.pk,
+            field_name=field_name
+        )
+
+    return perm
