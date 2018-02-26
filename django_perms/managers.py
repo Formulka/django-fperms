@@ -35,48 +35,73 @@ class PermManager(models.Manager):
         )
 
 
-class BasePermManager(models.Manager):
+class BasePermRelatedManager:
+
+    # Fake perms manager for group and user
 
     perm_for = None
+    perm_for_model = None
+    perm_for_slug = None
 
-    def assign_perm(self, perm, perm_for, model=None, obj=None, field_name=None):
-        if obj is not None and not is_obj_persisted(obj):
-            raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
+    def __init__(self, perm_for_model, perm_for):
+        self.perm_for_model = perm_for_model
+        self.perm_for = perm_for
 
-        perm = get_perm(perm, model, obj, field_name)
+    def get_queryset(self):
+        return self.perm_for_model.objects.all()
 
-        obj_perm, _ = self.get_or_create(**{
-            self.perm_for: perm_for,
-            'perm': perm,
-        })
-        return obj_perm
+    def all(self):
+        # Get all permissions for related group or user
 
-    def remove_perm(self, perm, perm_for, model=None, obj=None, field_name=None):
-        if obj is not None and not is_obj_persisted(obj):
-            raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
-
-        perm = get_perm(perm, model, obj, field_name)
-
-        return self.filter(**{
-            self.perm_for: perm_for,
-            'perm': perm,
-        }).delete()
-
-    def get_all_perms(self, perm_for):
         from django_perms.models import Perm
 
         perm_pks = self.get_queryset().filter(**{
-            self.perm_for: perm_for,
+            self.perm_for_slug: self.perm_for,
         }).values_list('perm__pk', flat=True)
 
         return Perm.objects.filter(pk__in=perm_pks)
 
+    def add(self, perm, model=None, obj=None, field_name=None):
+        # add a permission to the related group or user
 
-class UserPermManager(BasePermManager):
+        if obj is not None and not is_obj_persisted(obj):
+            raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
 
-    perm_for = 'user'
+        perm = get_perm(perm, model, obj, field_name)
+
+        obj_perm, _ = self.perm_for_model.objects.get_or_create(**{
+            self.perm_for_slug: self.perm_for,
+            'perm': perm,
+        })
+        return obj_perm
+
+    def remove(self, perm, model=None, obj=None, field_name=None):
+        # remove a permission from the related group or user
+
+        if obj is not None and not is_obj_persisted(obj):
+            raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
+
+        perm = get_perm(perm, model, obj, field_name)
+
+        return self.get_queryset().filter(**{
+            self.perm_for_slug: self.perm_for,
+            'perm': perm,
+        }).delete()
 
 
-class GroupPermManager(BasePermManager):
+class UserPermManagerMixin:
 
-    perm_for = 'group'
+    perm_for_slug = 'user'
+
+
+class GroupPermManagerMixin:
+
+    perm_for_slug = 'group'
+
+
+class UserPermRelatedManager(UserPermManagerMixin, BasePermRelatedManager):
+    pass
+
+
+class GroupPermRelatedManager(UserPermManagerMixin, BasePermRelatedManager):
+    pass

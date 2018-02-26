@@ -19,7 +19,7 @@ class ArticleUserTestCase(TestCase):
         )
 
     def _get_user_perm(self):
-        return self.user.get_all_perms().get()
+        return self.user.perms.all().get()
 
     def _get_content_type(self):
         return ContentType.objects.get_for_model(Article)
@@ -43,7 +43,7 @@ class ArticleUserGlobalPermTestCase(ArticleUserTestCase):
     def test_add_global_perm_by_perm(self):
         perm = self._create_perm()
 
-        self.user.add_perm(perm)
+        self.user.perms.add(perm)
 
         # test the new user perm is the created global perm
         self.assertEquals(perm, self._get_user_perm())
@@ -51,10 +51,14 @@ class ArticleUserGlobalPermTestCase(ArticleUserTestCase):
     def test_add_global_perm_by_codename(self):
         export_perm = self._create_perm()
 
-        self.user.add_perm('export')
+        self.user.perms.add('export')
 
         # test the new user perm is the created export global perm
         self.assertEquals(export_perm, self._get_user_perm())
+
+    def test_fail_add_global_perm_by_non_existent_codename(self):
+        with self.assertRaises(Perm.DoesNotExist):
+            self.user.perms.add('export')
 
 
 class ArticleUserModelPermTestCase(ArticleUserTestCase):
@@ -85,7 +89,7 @@ class ArticleUserModelPermTestCase(ArticleUserTestCase):
     def test_add_model_perm_by_perm(self):
         perm = self._create_perm()
 
-        self.user.add_perm(perm)
+        self.user.perms.add(perm)
 
         # test the new user perm is the created model perm
         self.assertEquals(perm, self._get_user_perm())
@@ -93,17 +97,28 @@ class ArticleUserModelPermTestCase(ArticleUserTestCase):
     def test_add_model_perm_by_codename_and_ctype(self):
         add_perm = self._create_add_perm()
 
-        self.user.add_perm('add', model=Article)
+        self.user.perms.add('add', model=Article)
 
         # test the new user perm is the created add model perm
         self.assertEquals(add_perm, self._get_user_perm())
+
+    def test_fail_add_model_perm_by_non_existent_codename(self):
+        self._create_perm()
+        with self.assertRaises(Perm.DoesNotExist):
+            self.user.perms.add('delete', model=Article)
+
+    def test_fail_add_model_perm_by_non_existent_model(self):
+        self._create_perm()
+        with self.assertRaises(Perm.DoesNotExist):
+            self.user.perms.add('add', model=ContentType)
 
 
 class ArticleUserObjectPermTestCase(ArticleUserTestCase):
 
     def setUp(self):
         super().setUp()
-        self.article = Article.objects.create(name='foo', text='bar bar')
+        self.article = Article.objects.create(name='foo', text='foo foo')
+        self.article2 = Article.objects.create(name='bar', text='bar bar')
 
     def _create_perm(self):
         return self._create_add_perm()
@@ -131,7 +146,7 @@ class ArticleUserObjectPermTestCase(ArticleUserTestCase):
     def test_add_object_perm_by_perm(self):
         perm = self._create_perm()
 
-        self.user.add_perm(perm)
+        self.user.perms.add(perm)
 
         # test the new user perm is the created object perm
         self.assertEquals(perm, self._get_user_perm())
@@ -139,10 +154,20 @@ class ArticleUserObjectPermTestCase(ArticleUserTestCase):
     def test_add_object_perm_by_codename_and_object(self):
         add_obj_perm = self._create_add_perm()
 
-        self.user.add_perm('add', obj=self.article)
+        self.user.perms.add('add', obj=self.article)
 
         # test the new user perm is the created add object perm
         self.assertEquals(add_obj_perm, self._get_user_perm())
+
+    def test_fail_add_object_perm_by_non_existent_codename(self):
+        self._create_perm()
+        with self.assertRaises(Perm.DoesNotExist):
+            self.user.perms.add('delete', model=Article)
+
+    def test_fail_add_object_perm_by_non_existent_object(self):
+        self._create_perm()
+        with self.assertRaises(Perm.DoesNotExist):
+            self.user.perms.add('add', obj=self.article2)
 
 
 class ArticleUserFieldPermTestCase(ArticleUserTestCase):
@@ -175,15 +200,30 @@ class ArticleUserFieldPermTestCase(ArticleUserTestCase):
     def test_add_field_perm_by_perm(self):
         perm = self._create_perm()
 
-        self.user.add_perm(perm)
+        self.user.perms.add(perm)
 
         # test the new user perm is the created field perm
         self.assertEquals(perm, self._get_user_perm())
 
-    def test_add_field_perm_by_codename_ctype_and_field_name(self):
+    def test_add_field_perm_by_codename_model_and_field_name(self):
         add_name_perm = self._create_add_perm()
 
-        self.user.add_perm('add', model=Article, field_name='name')
+        self.user.perms.add('add', model=Article, field_name='name')
 
         # test the new user perm is the created add name field perm
         self.assertEquals(add_name_perm, self._get_user_perm())
+
+    def test_fail_add_field_perm_by_non_existent_codename(self):
+        self._create_perm()
+        with self.assertRaises(Perm.DoesNotExist):
+            self.user.perms.add('delete', model=Article, field_name='name')
+
+    def test_fail_add_field_perm_by_non_existent_model(self):
+        self._create_perm()
+        with self.assertRaises(Perm.DoesNotExist):
+            self.user.perms.add('delete', model=ContentType, field_name='name')
+
+    def test_fail_add_field_perm_by_non_existent_field_name(self):
+        self._create_perm()
+        with self.assertRaises(Perm.DoesNotExist):
+            self.user.perms.add('add', model=Article, field_name='fail')

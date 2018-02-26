@@ -11,7 +11,9 @@ from django.utils.translation import ugettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from django_perms.conf import settings as perm_settings
-from django_perms.managers import PermManager, UserPermManager, GroupPermManager
+from django_perms.managers import (
+    PermManager, UserPermRelatedManager, GroupPermRelatedManager,
+)
 
 
 DEFAULT_PERM_CODENAMES = {
@@ -111,10 +113,10 @@ class Perm(models.Model):
 
 class UserPerm(models.Model):
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='perms')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     perm = models.ForeignKey(Perm, on_delete=models.CASCADE)
 
-    objects = UserPermManager()
+    # objects = UserPermManager()
 
     class Meta:
         verbose_name = _('user perm')
@@ -131,10 +133,10 @@ class UserPerm(models.Model):
 
 class GroupPerm(models.Model):
 
-    group = models.ForeignKey(Group, related_name='perms')
+    group = models.ForeignKey(Group)
     perm = models.ForeignKey(Perm, on_delete=models.CASCADE)
 
-    objects = GroupPermManager()
+    # objects = GroupPermManager()
 
     class Meta:
         verbose_name = _('group perm')
@@ -151,27 +153,11 @@ class GroupPerm(models.Model):
 
 def monkey_patch_user():
     user_model = get_user_model()
-    setattr(user_model, 'add_perm',
-            lambda self, perm, model=None, obj=None, field_name=None:
-            UserPerm.objects.assign_perm(perm, self, model, obj, field_name))
-    setattr(user_model, 'del_perm',
-            lambda self, perm, model=None, obj=None, field_name=None:
-            UserPerm.objects.remove_perm(perm, self, model, obj, field_name))
-    setattr(user_model, 'get_all_perms',
-            lambda self:
-            UserPerm.objects.get_all_perms(self))
+    setattr(user_model, 'perms', property(lambda self: UserPermRelatedManager(UserPerm, self)))
 
 
 def monkey_patch_group():
-    setattr(Group, 'add_perm',
-            lambda self, perm, model=None, obj=None, field_name=None:
-            GroupPerm.objects.assign_perm(perm, self, model, obj, field_name))
-    setattr(Group, 'del_perm',
-            lambda self, perm, model=None, obj=None, field_name=None:
-            GroupPerm.objects.assign_perm(perm, self, model, obj, field_name))
-    setattr(Group, 'get_all_perms',
-            lambda self:
-            GroupPerm.objects.get_all_perms(self))
+    setattr(Group, 'perms', property(lambda self: GroupPermRelatedManager(GroupPerm, self)))
 
 
 monkey_patch_user()
