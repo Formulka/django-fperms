@@ -1,7 +1,38 @@
 from __future__ import unicode_literals
 from django.db import models
 from django_perms.exceptions import ObjectNotPersisted
-from django_perms.utils import is_obj_persisted, get_content_type, get_perm
+from django_perms.utils import is_obj_persisted, get_perm
+
+
+class PermManager(models.Manager):
+
+    def model_perms(self):
+        return self.get_queryset().filter(
+            content_type__isnull=False,
+            object_id__isnull=True,
+            field_name__isnull=True,
+        )
+
+    def object_perms(self):
+        return self.get_queryset().filter(
+            content_type__isnull=False,
+            object_id__isnull=False,
+            field_name__isnull=True,
+        )
+
+    def field_perms(self):
+        return self.get_queryset().filter(
+            content_type__isnull=False,
+            field_name__isnull=False,
+            object_id__isnull=True,
+        )
+
+    def global_perms(self):
+        return self.get_queryset().filter(
+            content_type__isnull=True,
+            field_name__isnull=True,
+            object_id__isnull=True,
+        )
 
 
 class BasePermManager(models.Manager):

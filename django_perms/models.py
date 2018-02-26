@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from django_perms.conf import settings as perm_settings
-from django_perms.managers import UserPermManager, GroupPermManager
+from django_perms.managers import PermManager, UserPermManager, GroupPermManager
 
 
 DEFAULT_PERM_CODENAMES = {
@@ -21,37 +21,6 @@ DEFAULT_PERM_CODENAMES = {
 }
 
 PERM_CODENAMES = dict(DEFAULT_PERM_CODENAMES, **perm_settings.PERM_CODENAMES)
-
-
-class PermManager(models.Manager):
-
-    def model_perms(self):
-        return self.get_queryset().filter(
-            content_type__isnull=False,
-            object_id__isnull=True,
-            field_name__isnull=True,
-        )
-
-    def object_perms(self):
-        return self.get_queryset().filter(
-            content_type__isnull=False,
-            object_id__isnull=False,
-            field_name__isnull=True,
-        )
-
-    def field_perms(self):
-        return self.get_queryset().filter(
-            content_type__isnull=False,
-            field_name__isnull=False,
-            object_id__isnull=True,
-        )
-
-    def global_perms(self):
-        return self.get_queryset().filter(
-            content_type__isnull=True,
-            field_name__isnull=True,
-            object_id__isnull=True,
-        )
 
 
 class Perm(models.Model):
