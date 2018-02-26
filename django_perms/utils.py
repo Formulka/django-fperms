@@ -18,7 +18,7 @@ def get_perm(perm, model=None, obj=None, field_name=None):
         perm = Perm.objects.get(
             codename=perm,
             content_type=content_type,
-            object_id=obj.pk,
+            object_id=obj.pk if obj else None,
             field_name=field_name
         )
 

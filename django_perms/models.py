@@ -42,11 +42,11 @@ class PermManager(models.Manager):
     def field_perms(self):
         return self.get_queryset().filter(
             content_type__isnull=False,
-            field_name__isnull=True,
+            field_name__isnull=False,
             object_id__isnull=True,
         )
 
-    def generic_perms(self):
+    def global_perms(self):
         return self.get_queryset().filter(
             content_type__isnull=True,
             field_name__isnull=True,
