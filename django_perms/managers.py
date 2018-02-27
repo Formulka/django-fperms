@@ -27,7 +27,7 @@ class PermManager(models.Manager):
             object_id__isnull=True,
         )
 
-    def global_perms(self):
+    def generic_perms(self):
         return self.get_queryset().filter(
             content_type__isnull=True,
             field_name__isnull=True,
@@ -103,5 +103,5 @@ class UserPermRelatedManager(UserPermManagerMixin, BasePermRelatedManager):
     pass
 
 
-class GroupPermRelatedManager(UserPermManagerMixin, BasePermRelatedManager):
+class GroupPermRelatedManager(GroupPermManagerMixin, BasePermRelatedManager):
     pass

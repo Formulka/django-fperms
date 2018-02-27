@@ -70,7 +70,7 @@ class Perm(models.Model):
         return self.field_name is not None
 
     @cached_property
-    def is_global_perm(self):
+    def is_generic_perm(self):
         return (
             self.content_type is None
             and self.field_name is None
