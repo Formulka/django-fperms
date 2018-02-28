@@ -8,6 +8,11 @@ from .factories import ArticleFactory
 
 class ObjectPermTestCaseMixin:
 
+    def setUp(self):
+        super().setUp()
+        self.article = ArticleFactory()
+        self.article2 = ArticleFactory()
+
     def _create_perm(self):
         return self._create_add_perm()
 
@@ -26,11 +31,6 @@ class ObjectPermTestCaseMixin:
 
 class ObjectPermTestCase(ObjectPermTestCaseMixin, ArticleTestCase):
 
-    def setUp(self):
-        super().setUp()
-        self.article = Article.objects.create(name='foo', text='foo foo')
-        self.article2 = Article.objects.create(name='bar', text='bar bar')
-
     def test_perm_has_correct_type(self):
         perm = self._create_perm()
         self.assertTrue(perm.is_object_perm)
@@ -42,11 +42,6 @@ class ObjectPermTestCase(ObjectPermTestCaseMixin, ArticleTestCase):
 
 class ArticleUserObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleUserPermTestCase):
 
-    def setUp(self):
-        super().setUp()
-        self.article = ArticleFactory()
-        self.article2 = ArticleFactory()
-
     def test_add_object_perm_by_perm(self):
         perm = self._create_perm()
 
@@ -55,23 +50,23 @@ class ArticleUserObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleUserPerm
         # test the new user perm is the created object perm
         self.assertEquals(perm, self.user.perms.all().get())
 
-    def test_add_object_perm_by_codename_and_object(self):
+    def test_add_object_perm_by_str(self):
         add_obj_perm = self._create_add_perm()
 
-        self.user.perms.add('add', obj=self.article)
+        self.user.perms.add('object.articles.Article.add', obj=self.article)
 
         # test the new user perm is the created add object perm
         self.assertEquals(add_obj_perm, self.user.perms.all().get())
 
-    def test_fail_add_object_perm_by_non_existent_codename(self):
+    def test_fail_add_object_perm_non_existent_codename(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('delete', model=Article)
+            self.user.perms.add('object.articles.Article.delete', obj=self.article)
 
-    def test_fail_add_object_perm_by_non_existent_object(self):
+    def test_fail_add_object_perm_non_existent_object(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('add', obj=self.article2)
+            self.user.perms.add('object.articles.Article.add', obj=self.article2)
 
     def test_has_object_perm(self):
         add_obj_perm = self._create_add_perm()
@@ -83,11 +78,6 @@ class ArticleUserObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleUserPerm
 
 class ArticleGroupObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleGroupPermTestCase):
 
-    def setUp(self):
-        super().setUp()
-        self.article = Article.objects.create(name='foo', text='foo foo')
-        self.article2 = Article.objects.create(name='bar', text='bar bar')
-
     def test_add_object_perm_by_perm(self):
         perm = self._create_perm()
 
@@ -96,10 +86,10 @@ class ArticleGroupObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleGroupPe
         # test the new user perm is the created object perm
         self.assertEquals(perm, self.group.perms.all().get())
 
-    def test_add_object_perm_by_codename_and_object(self):
+    def test_add_object_perm_by_str(self):
         add_obj_perm = self._create_add_perm()
 
-        self.group.perms.add('add', obj=self.article)
+        self.group.perms.add('object.articles.Article.add', obj=self.article)
 
         # test the new user perm is the created add object perm
         self.assertEquals(add_obj_perm, self.group.perms.all().get())
@@ -107,9 +97,9 @@ class ArticleGroupObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleGroupPe
     def test_fail_add_object_perm_by_non_existent_codename(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('delete', model=Article)
+            self.group.perms.add('object.articles.Article.delete', obj=self.article)
 
     def test_fail_add_object_perm_by_non_existent_object(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('add', obj=self.article2)
+            self.group.perms.add('object.articles.Article.add', obj=self.article2)

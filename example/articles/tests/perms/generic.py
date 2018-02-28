@@ -36,14 +36,14 @@ class ArticleUserGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleUserPe
     def test_add_generic_perm_by_codename(self):
         export_perm = self._create_perm()
 
-        self.user.perms.add('export')
+        self.user.perms.add('generic.export')
 
         # test the new user perm is the created export generic perm
         self.assertEquals(export_perm, self.user.perms.all().get())
 
-    def test_fail_add_generic_perm_by_non_existent_codename(self):
+    def test_fail_add_generic_perm_non_existent_codename(self):
         with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('export')
+            self.user.perms.add('generic.export')
 
     def test_has_generic_perm(self):
         export_perm = self._create_perm()
@@ -66,18 +66,18 @@ class ArticleGroupGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleGroup
     def test_add_generic_perm_by_codename(self):
         export_perm = self._create_perm()
 
-        self.group.perms.add('export')
+        self.group.perms.add('generic.export')
 
         # test the new user perm is the created export generic perm
         self.assertEquals(export_perm, self.group.perms.all().get())
 
-    def test_fail_add_generic_perm_by_non_existent_codename(self):
+    def test_fail_add_generic_perm_non_existent_codename(self):
         with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('export')
+            self.group.perms.add('generic.export')
 
     def test_has_generic_perm(self):
         self._create_perm()
 
-        self.group.perms.add('export')
+        self.group.perms.add('generic.export')
 
         self.assertTrue(self.group.perms.has_perm('generic.export'))

@@ -45,10 +45,10 @@ class ArticleUserModelPermPermTestCase(ModelPermTestCaseMixin, ArticleUserPermTe
         # test the new user perm is the created model perm
         self.assertEquals(perm, self.user.perms.all().get())
 
-    def test_add_model_perm_by_codename_and_ctype(self):
+    def test_add_model_perm_by_str(self):
         add_perm = self._create_add_perm()
 
-        self.user.perms.add('add', model=Article)
+        self.user.perms.add('model.articles.Article.add')
 
         # test the new user perm is the created add model perm
         self.assertEquals(add_perm, self.user.perms.all().get())
@@ -56,12 +56,12 @@ class ArticleUserModelPermPermTestCase(ModelPermTestCaseMixin, ArticleUserPermTe
     def test_fail_add_model_perm_by_non_existent_codename(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('delete', model=Article)
+            self.user.perms.add('model.articles.Article.delete')
 
     def test_fail_add_model_perm_by_non_existent_model(self):
         self._create_perm()
-        with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('add', model=ContentType)
+        with self.assertRaises(LookupError):
+            self.user.perms.add('model.articles.Bar.fap')
 
     def test_has_model_perm(self):
         add_perm = self._create_add_perm()
@@ -81,20 +81,20 @@ class ArticleGroupModelPermPermTestCase(ModelPermTestCaseMixin, ArticleGroupPerm
         # test the new user perm is the created model perm
         self.assertEquals(perm, self.group.perms.all().get())
 
-    def test_add_model_perm_by_codename_and_ctype(self):
+    def test_add_model_perm_by_str(self):
         add_perm = self._create_add_perm()
 
-        self.group.perms.add('add', model=Article)
+        self.group.perms.add('model.articles.Article.add')
 
         # test the new user perm is the created add model perm
         self.assertEquals(add_perm, self.group.perms.all().get())
 
-    def test_fail_add_model_perm_by_non_existent_codename(self):
+    def test_fail_add_model_perm_non_existent_codename(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('delete', model=Article)
+            self.group.perms.add('model.articles.Article.delete')
 
-    def test_fail_add_model_perm_by_non_existent_model(self):
+    def test_fail_add_model_perm_non_existent_model(self):
         self._create_perm()
-        with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('add', model=ContentType)
+        with self.assertRaises(LookupError):
+            self.group.perms.add('model.articles.Bar.fap')

@@ -47,28 +47,28 @@ class ArticleUserFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleUserPermTe
         # test the new user perm is the created field perm
         self.assertEquals(perm, self.user.perms.all().get())
 
-    def test_add_field_perm_by_codename_model_and_field_name(self):
+    def test_add_field_perm_by_str(self):
         add_name_perm = self._create_add_perm()
 
-        self.user.perms.add('add', model=Article, field_name='name')
+        self.user.perms.add('field.articles.Article.name.add')
 
         # test the new user perm is the created add name field perm
         self.assertEquals(add_name_perm, self.user.perms.all().get())
 
-    def test_fail_add_field_perm_by_non_existent_codename(self):
+    def test_fail_add_field_perm_non_existent_codename(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('delete', model=Article, field_name='name')
+            self.user.perms.add('field.articles.Article.name.delete')
 
-    def test_fail_add_field_perm_by_non_existent_model(self):
+    def test_fail_add_field_perm_non_existent_model(self):
         self._create_perm()
-        with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('delete', model=ContentType, field_name='name')
+        with self.assertRaises(LookupError):
+            self.user.perms.add('field.articles.Foo.name.add')
 
-    def test_fail_add_field_perm_by_non_existent_field_name(self):
+    def test_fail_add_field_perm_non_existent_field_name(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('add', model=Article, field_name='fail')
+            self.user.perms.add('field.articles.Article.foo.add')
 
     def test_has_field_perm(self):
         add_name_perm = self._create_add_perm()
@@ -102,25 +102,25 @@ class ArticleGroupFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleGroupPerm
         # test the new user perm is the created field perm
         self.assertEquals(perm, self.group.perms.all().get())
 
-    def test_add_field_perm_by_codename_model_and_field_name(self):
+    def test_add_field_perm_by_str(self):
         add_name_perm = self._create_add_perm()
 
-        self.group.perms.add('add', model=Article, field_name='name')
+        self.group.perms.add('field.articles.Article.name.add')
 
         # test the new user perm is the created add name field perm
         self.assertEquals(add_name_perm, self.group.perms.all().get())
 
-    def test_fail_add_field_perm_by_non_existent_codename(self):
+    def test_fail_add_field_perm_non_existent_codename(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('delete', model=Article, field_name='name')
+            self.group.perms.add('field.articles.Article.name.delete')
 
-    def test_fail_add_field_perm_by_non_existent_model(self):
+    def test_fail_add_field_perm_non_existent_model(self):
         self._create_perm()
-        with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('delete', model=ContentType, field_name='name')
+        with self.assertRaises(LookupError):
+            self.group.perms.add('field.articles.Foo.name.add')
 
-    def test_fail_add_field_perm_by_non_existent_field_name(self):
+    def test_fail_add_field_perm_non_existent_field_name(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('add', model=Article, field_name='fail')
+            self.group.perms.add('field.articles.Article.foo.add')
