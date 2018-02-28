@@ -1,6 +1,9 @@
-from __future__ import unicode_literals
+from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django_perms.exceptions import ObjectNotPersisted
+from django.utils.translation import ugettext_lazy as _
+
+from django_perms.exceptions import ObjectNotPersisted, IncorrectContentType, IncorrectObject
 from django_perms.utils import is_obj_persisted, get_perm
 
 
@@ -65,7 +68,7 @@ class BasePermRelatedManager:
         # add a permission to the related group or user
 
         if obj is not None and not is_obj_persisted(obj):
-            raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
+            raise ObjectNotPersisted(_('Object %s needs to be persisted first') % obj)
 
         perm = get_perm(perm, model, obj, field_name)
 
@@ -79,7 +82,7 @@ class BasePermRelatedManager:
         # remove a permission from the related group or user
 
         if obj is not None and not is_obj_persisted(obj):
-            raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
+            raise ObjectNotPersisted(_('Object %s needs to be persisted first') % obj)
 
         perm = get_perm(perm, model, obj, field_name)
 
@@ -87,6 +90,44 @@ class BasePermRelatedManager:
             self.perm_for_slug: self.perm_for,
             'perm': perm,
         }).delete()
+
+    def has_perm(self, perm, obj=None):
+        from django_perms.models import PERM_TYPE_GENERIC, PERM_TYPE_MODEL, PERM_TYPE_OBJECT, PERM_TYPE_FIELD
+
+        perm_type, perm_arg_string = perm.split('.', 1)
+
+        codename = content_type = object_id = field_name = None
+
+        if perm_type == PERM_TYPE_GENERIC:
+            codename = perm_arg_string
+        elif perm_type == PERM_TYPE_MODEL:
+            model_name, codename = perm_arg_string.rsplit('.', 1)
+            model = apps.get_model(model_name)
+            content_type = ContentType.objects.get_for_model(model)
+        elif perm_type == PERM_TYPE_OBJECT:
+            model_name, codename = perm_arg_string.rsplit('.', 1)
+            model = apps.get_model(model_name)
+            content_type = ContentType.objects.get_for_model(model)
+
+            if not isinstance(obj, models.Model):
+                raise IncorrectObject(_('Object %s must be a model instance') % obj)
+            if not isinstance(obj, model):
+                raise IncorrectContentType(_('Object %s does not have a correct content type') % obj)
+            if not is_obj_persisted(obj):
+                raise ObjectNotPersisted(_('Object %s needs to be persisted first') % obj)
+
+            object_id = obj.pk
+        elif perm_type == PERM_TYPE_FIELD:
+            model_name, field_name, codename = perm_arg_string.rsplit('.', 2)
+            model = apps.get_model(model_name)
+            content_type = ContentType.objects.get_for_model(model)
+
+        return self.all().filter(
+            codename=codename,
+            content_type=content_type,
+            object_id=object_id,
+            field_name=field_name,
+        ).exists()
 
 
 class UserPermManagerMixin:

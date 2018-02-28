@@ -1,9 +1,9 @@
-from django.contrib.contenttypes.models import ContentType
 from django_perms.models import Perm
 
 from articles.models import Article
 
 from .base import ArticleTestCase, ArticleUserPermTestCase, ArticleGroupPermTestCase
+from .factories import ArticleFactory
 
 
 class ObjectPermTestCaseMixin:
@@ -31,7 +31,7 @@ class ObjectPermTestCase(ObjectPermTestCaseMixin, ArticleTestCase):
         self.article = Article.objects.create(name='foo', text='foo foo')
         self.article2 = Article.objects.create(name='bar', text='bar bar')
 
-    def test_perm_has_a_correct_type(self):
+    def test_perm_has_correct_type(self):
         perm = self._create_perm()
         self.assertTrue(perm.is_object_perm)
 
@@ -44,8 +44,8 @@ class ArticleUserObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleUserPerm
 
     def setUp(self):
         super().setUp()
-        self.article = Article.objects.create(name='foo', text='foo foo')
-        self.article2 = Article.objects.create(name='bar', text='bar bar')
+        self.article = ArticleFactory()
+        self.article2 = ArticleFactory()
 
     def test_add_object_perm_by_perm(self):
         perm = self._create_perm()
@@ -53,7 +53,7 @@ class ArticleUserObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleUserPerm
         self.user.perms.add(perm)
 
         # test the new user perm is the created object perm
-        self.assertEquals(perm, self._get_perm())
+        self.assertEquals(perm, self.user.perms.all().get())
 
     def test_add_object_perm_by_codename_and_object(self):
         add_obj_perm = self._create_add_perm()
@@ -61,7 +61,7 @@ class ArticleUserObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleUserPerm
         self.user.perms.add('add', obj=self.article)
 
         # test the new user perm is the created add object perm
-        self.assertEquals(add_obj_perm, self._get_perm())
+        self.assertEquals(add_obj_perm, self.user.perms.all().get())
 
     def test_fail_add_object_perm_by_non_existent_codename(self):
         self._create_perm()
@@ -72,6 +72,13 @@ class ArticleUserObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleUserPerm
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
             self.user.perms.add('add', obj=self.article2)
+
+    def test_has_object_perm(self):
+        add_obj_perm = self._create_add_perm()
+
+        self.user.perms.add(add_obj_perm)
+
+        self.assertTrue(self.user.perms.has_perm('object.articles.Article.add', self.article))
 
 
 class ArticleGroupObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleGroupPermTestCase):
@@ -87,7 +94,7 @@ class ArticleGroupObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleGroupPe
         self.group.perms.add(perm)
 
         # test the new user perm is the created object perm
-        self.assertEquals(perm, self._get_perm())
+        self.assertEquals(perm, self.group.perms.all().get())
 
     def test_add_object_perm_by_codename_and_object(self):
         add_obj_perm = self._create_add_perm()
@@ -95,7 +102,7 @@ class ArticleGroupObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleGroupPe
         self.group.perms.add('add', obj=self.article)
 
         # test the new user perm is the created add object perm
-        self.assertEquals(add_obj_perm, self._get_perm())
+        self.assertEquals(add_obj_perm, self.group.perms.all().get())
 
     def test_fail_add_object_perm_by_non_existent_codename(self):
         self._create_perm()

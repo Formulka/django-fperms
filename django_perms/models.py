@@ -8,12 +8,16 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
-from polymorphic.models import PolymorphicModel
-
 from django_perms.conf import settings as perm_settings
 from django_perms.managers import (
     PermManager, UserPermRelatedManager, GroupPermRelatedManager,
 )
+
+
+PERM_TYPE_GENERIC = 'generic'
+PERM_TYPE_MODEL = 'model'
+PERM_TYPE_OBJECT = 'object'
+PERM_TYPE_FIELD = 'field'
 
 
 DEFAULT_PERM_CODENAMES = {

@@ -5,6 +5,8 @@ from django.test import TestCase
 
 from articles.models import Article
 
+from .factories import UserFactory, GroupFactory
+
 
 class ArticleTestCase(TestCase):
 
@@ -15,23 +17,10 @@ class ArticleTestCase(TestCase):
 class ArticleUserPermTestCase(ArticleTestCase):
 
     def setUp(self):
-        self.user = get_user_model().objects.create_user(
-            username='test',
-            password='test',
-            email='test@example.com',
-            is_active=True,
-        )
-
-    def _get_perm(self):
-        return self.user.perms.all().get()
+        self.user = UserFactory()
 
 
 class ArticleGroupPermTestCase(ArticleTestCase):
 
     def setUp(self):
-        self.group = Group.objects.create(
-            name='test group',
-        )
-
-    def _get_perm(self):
-        return self.group.perms.all().get()
+        self.group = GroupFactory()

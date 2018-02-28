@@ -28,7 +28,7 @@ class FieldPermTestCaseMixin:
 
 class FieldPermTestCase(FieldPermTestCaseMixin, ArticleTestCase):
 
-    def test_perm_has_a_correct_type(self):
+    def test_perm_has_correct_type(self):
         perm = self._create_perm()
         self.assertTrue(perm.is_field_perm)
 
@@ -45,7 +45,7 @@ class ArticleUserFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleUserPermTe
         self.user.perms.add(perm)
 
         # test the new user perm is the created field perm
-        self.assertEquals(perm, self._get_perm())
+        self.assertEquals(perm, self.user.perms.all().get())
 
     def test_add_field_perm_by_codename_model_and_field_name(self):
         add_name_perm = self._create_add_perm()
@@ -53,7 +53,7 @@ class ArticleUserFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleUserPermTe
         self.user.perms.add('add', model=Article, field_name='name')
 
         # test the new user perm is the created add name field perm
-        self.assertEquals(add_name_perm, self._get_perm())
+        self.assertEquals(add_name_perm, self.user.perms.all().get())
 
     def test_fail_add_field_perm_by_non_existent_codename(self):
         self._create_perm()
@@ -70,6 +70,27 @@ class ArticleUserFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleUserPermTe
         with self.assertRaises(Perm.DoesNotExist):
             self.user.perms.add('add', model=Article, field_name='fail')
 
+    def test_has_field_perm(self):
+        add_name_perm = self._create_add_perm()
+
+        self.user.perms.add(add_name_perm)
+
+        self.assertTrue(self.user.perms.has_perm('field.articles.Article.name.add'))
+
+    def test_fail_has_perm_non_existent_field_name(self):
+        add_name_perm = self._create_add_perm()
+
+        self.user.perms.add(add_name_perm)
+
+        self.assertFalse(self.user.perms.has_perm('field.articles.Article.foobar.add'))
+
+    def test_fail_has_perm_non_existent_codename(self):
+        add_name_perm = self._create_add_perm()
+
+        self.user.perms.add(add_name_perm)
+
+        self.assertFalse(self.user.perms.has_perm('field.articles.Article.name.delete'))
+
 
 class ArticleGroupFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleGroupPermTestCase):
 
@@ -79,7 +100,7 @@ class ArticleGroupFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleGroupPerm
         self.group.perms.add(perm)
 
         # test the new user perm is the created field perm
-        self.assertEquals(perm, self._get_perm())
+        self.assertEquals(perm, self.group.perms.all().get())
 
     def test_add_field_perm_by_codename_model_and_field_name(self):
         add_name_perm = self._create_add_perm()
@@ -87,7 +108,7 @@ class ArticleGroupFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleGroupPerm
         self.group.perms.add('add', model=Article, field_name='name')
 
         # test the new user perm is the created add name field perm
-        self.assertEquals(add_name_perm, self._get_perm())
+        self.assertEquals(add_name_perm, self.group.perms.all().get())
 
     def test_fail_add_field_perm_by_non_existent_codename(self):
         self._create_perm()

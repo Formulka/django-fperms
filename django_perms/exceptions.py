@@ -9,5 +9,13 @@ class ObjectNotPersisted(PermError):
     pass
 
 
+class IncorrectObject(PermError):
+    pass
+
+
+class IncorrectContentType(PermError):
+    pass
+
+
 class PermNotUnique(PermError):
     pass
