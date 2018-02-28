@@ -1,7 +1,4 @@
-from django.contrib.contenttypes.models import ContentType
 from django_perms.models import Perm
-
-from articles.models import Article
 
 from .base import ArticleTestCase, ArticleUserPermTestCase, ArticleGroupPermTestCase
 

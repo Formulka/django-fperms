@@ -1,3 +1,4 @@
+import django.db.models.options as options
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -13,7 +14,6 @@ from django_perms.managers import (
     PermManager, UserPermRelatedManager, GroupPermRelatedManager,
 )
 
-
 PERM_TYPE_GENERIC = 'generic'
 PERM_TYPE_MODEL = 'model'
 PERM_TYPE_OBJECT = 'object'
@@ -22,7 +22,7 @@ PERM_TYPE_FIELD = 'field'
 
 DEFAULT_PERM_CODENAMES = {
     'add': _('Add permission'),
-    'update': _('Update permission'),
+    'change': _('Change permission'),
     'delete': _('Delete permission'),
 }
 
@@ -117,8 +117,8 @@ class Perm(models.Model):
 
 class UserPerm(models.Model):
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    perm = models.ForeignKey(Perm, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='userperms')
+    perm = models.ForeignKey(Perm, on_delete=models.CASCADE, related_name='userperms')
 
     # objects = UserPermManager()
 
@@ -137,8 +137,8 @@ class UserPerm(models.Model):
 
 class GroupPerm(models.Model):
 
-    group = models.ForeignKey(Group)
-    perm = models.ForeignKey(Perm, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, related_name='groupperms')
+    perm = models.ForeignKey(Perm, on_delete=models.CASCADE, related_name='groupperms')
 
     # objects = GroupPermManager()
 
@@ -153,6 +153,17 @@ class GroupPerm(models.Model):
             self.group,
             self.perm
         )
+
+
+options.DEFAULT_NAMES = options.DEFAULT_NAMES + ('perms_per_instance', 'perms_per_instance_auto_author',)
+
+
+class PermModel(models.Model):
+
+    class Meta:
+        abstract=True
+        perms_per_instance = False
+        perms_per_instance_auto_author = True
 
 
 def monkey_patch_user():

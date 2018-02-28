@@ -14,11 +14,23 @@ def get_content_type(obj):
     return ContentType.objects.get_for_model(obj)
 
 
-def get_perm(perm, obj=None):
-    from django_perms.models import Perm, PERM_TYPE_MODEL, PERM_TYPE_OBJECT, PERM_TYPE_FIELD
+def get_perm_type(codename, model=None, obj=None, field_name=None):
+    from django_perms.models import PERM_TYPE_MODEL, PERM_TYPE_OBJECT, PERM_TYPE_FIELD, PERM_TYPE_GENERIC
 
-    if isinstance(perm, Perm):
-        return perm
+    if model is not None and obj is not None:
+        perm_type = PERM_TYPE_OBJECT
+    elif model is not None and field_name is not None:
+        perm_type = PERM_TYPE_FIELD
+    elif model is not None:
+        perm_type = PERM_TYPE_MODEL
+    else:
+        perm_type = PERM_TYPE_GENERIC
+
+    return perm_type
+
+
+def get_perm_kwargs(perm, obj=None):
+    from django_perms.models import PERM_TYPE_MODEL, PERM_TYPE_OBJECT, PERM_TYPE_FIELD
 
     perm_type, perm_arg_string = perm.split('.', 1)
 
@@ -45,9 +57,20 @@ def get_perm(perm, obj=None):
     if model:
         content_type = ContentType.objects.get_for_model(model)
 
-    return Perm.objects.get(
+    return dict(
         codename=codename,
         content_type=content_type,
         object_id=object_id,
         field_name=field_name,
     )
+
+
+def get_perm(perm, obj=None):
+    from django_perms.models import Perm
+
+    if isinstance(perm, Perm):
+        return perm
+
+    perm_kwargs = get_perm_kwargs(perm, obj)
+
+    return Perm.objects.get(**perm_kwargs)

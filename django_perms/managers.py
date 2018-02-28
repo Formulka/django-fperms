@@ -1,8 +1,19 @@
 from django.db import models
-from django_perms.utils import get_perm
+from django_perms.utils import get_perm, get_perm_kwargs
 
 
 class PermManager(models.Manager):
+
+    def perm_exists(self, perm, obj=None):
+        try:
+            get_perm(perm, obj)
+        except self.DoesNotExist:
+            return False
+        return True
+
+    def create_from_str(self, perm, obj=None):
+        perm_kwargs = get_perm_kwargs(perm, obj)
+        return self.create(**perm_kwargs)
 
     def model_perms(self):
         return self.get_queryset().filter(

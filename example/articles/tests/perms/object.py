@@ -1,7 +1,5 @@
 from django_perms.models import Perm
 
-from articles.models import Article
-
 from .base import ArticleTestCase, ArticleUserPermTestCase, ArticleGroupPermTestCase
 from .factories import ArticleFactory
 
