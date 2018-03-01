@@ -3,7 +3,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.utils.functional import cached_property
 
 from django_perms.models import Perm
-from django_perms.utils import get_content_type, get_perm_kwargs
+from django_perms.utils import get_content_type
 
 
 class PermAdminMixin:
@@ -25,32 +25,20 @@ class PermChangeList(PermAdminMixin, ChangeList):
 class PermAdmin(PermAdminMixin, ModelAdmin):
 
     perms_per_instance = False
-    perms_per_instance_auto_author = True
+    perms_per_instance_author_change = True
+    perms_per_instance_author_delete = True
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        if self.perms_per_instance and self.perms_per_instance_auto_author:
-            perm_kwargs = {
-                'content_type': get_content_type(self.model),
-                'object_id': obj.pk,
-            }
+
+        # add the change and delete permissions for the author of a new model instance
+        if not change and self.perms_per_instance:
             for codename in ('change', 'delete'):
-                perm, _ = Perm.objects.get_or_create(codename=codename, **perm_kwargs)
-                request.user.perms.add(perm)
+                if hasattr(self, 'perms_per_instance_author_'+codename):
+                    self.add_perm(request.user, codename, obj)
 
-    def has_perm(self, user, codename=None, obj=None):
-        object_id = obj.pk if obj is not None else None
-        try:
-            perm = self._perms.get(codename=codename, object_id=object_id)
-        except Perm.DoesNotExist:
-            perm = None
-
-        print(user, codename, obj, perm, user.perms.has_perm(perm))
-
-        return user.perms.has_perm(perm) or user.is_superuser if perm is not None else False
-
-    def has_add_permission(self, request):
-        return self.has_perm(request.user, 'add')
+    def get_changelist(self, request, **kwargs):
+        return PermChangeList
 
     def has_change_permission(self, request, obj=None):
         if self.perms_per_instance:
@@ -64,8 +52,20 @@ class PermAdmin(PermAdminMixin, ModelAdmin):
 
         return self.has_perm(request.user, 'delete')
 
-    def has_module_permission(self, request):
-        return self._perms.filter(userperms__user=request.user)
+    def add_perm(self, user, codename, obj):
+        object_id = obj.pk if obj is not None else None
+        perm_kwargs = {
+            'content_type': get_content_type(self.model),
+            'object_id': object_id,
+        }
 
-    def get_changelist(self, request, **kwargs):
-        return PermChangeList
+        perm, _ = Perm.objects.get_or_create(codename=codename, **perm_kwargs)
+        user.perms.add(perm)
+
+    def has_perm(self, user, codename=None, obj=None):
+        object_id = obj.pk if obj is not None else None
+        try:
+            perm = self._perms.get(codename=codename, object_id=object_id)
+            return user.perms.has_perm(perm)
+        except Perm.DoesNotExist:
+            return False

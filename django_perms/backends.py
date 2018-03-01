@@ -1,6 +1,6 @@
 from django.apps import apps
-from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+from django.contrib.contenttypes.models import ContentType
 
 from django_perms.models import Perm
 from django_perms.utils import get_content_type
@@ -24,3 +24,11 @@ class PermBackend(ModelBackend):
     def has_perm(self, user_obj, perm, obj=None):
         perm_obj = get_perm_from_permission_codename(perm)
         return user_obj.perms.has_perm(perm_obj, obj)
+
+    def has_module_perms(self, user_obj, app_label):
+        if not user_obj.is_active:
+            return False
+
+        ctypes = ContentType.objects.filter(app_label=app_label)
+
+        return Perm.objects.filter(userperms__user=user_obj, content_type__in=ctypes)
