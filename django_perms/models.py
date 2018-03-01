@@ -1,4 +1,3 @@
-import django.db.models.options as options
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -153,17 +152,6 @@ class GroupPerm(models.Model):
             self.group,
             self.perm
         )
-
-
-options.DEFAULT_NAMES = options.DEFAULT_NAMES + ('perms_per_instance', 'perms_per_instance_auto_author',)
-
-
-class PermModel(models.Model):
-
-    class Meta:
-        abstract=True
-        perms_per_instance = False
-        perms_per_instance_auto_author = True
 
 
 def monkey_patch_user():

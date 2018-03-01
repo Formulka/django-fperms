@@ -24,15 +24,19 @@ class PermChangeList(PermAdminMixin, ChangeList):
 
 class PermAdmin(PermAdminMixin, ModelAdmin):
 
+    perms_per_instance = False
+    perms_per_instance_auto_author = True
+
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        if self.model._meta.perms_per_instance and self.model._meta.perms_per_instance_auto_author:
-            perm, _ = Perm.objects.get_or_create(
-                content_type=get_content_type(self.model),
-                object_id=obj.pk,
-                codename='change',
-            )
-            request.user.perms.add(perm)
+        if self.perms_per_instance and self.perms_per_instance_auto_author:
+            perm_kwargs = {
+                'content_type': get_content_type(self.model),
+                'object_id': obj.pk,
+            }
+            for codename in ('change', 'delete'):
+                perm, _ = Perm.objects.get_or_create(codename=codename, **perm_kwargs)
+                request.user.perms.add(perm)
 
     def has_perm(self, user, codename=None, obj=None):
         object_id = obj.pk if obj is not None else None
@@ -41,19 +45,21 @@ class PermAdmin(PermAdminMixin, ModelAdmin):
         except Perm.DoesNotExist:
             perm = None
 
+        print(user, codename, obj, perm, user.perms.has_perm(perm))
+
         return user.perms.has_perm(perm) or user.is_superuser if perm is not None else False
 
     def has_add_permission(self, request):
         return self.has_perm(request.user, 'add')
 
     def has_change_permission(self, request, obj=None):
-        if self.model._meta.perms_per_instance:
+        if self.perms_per_instance:
             return self.has_perm(request.user, 'change', obj=obj)
 
         return self.has_perm(request.user, 'change')
 
     def has_delete_permission(self, request, obj=None):
-        if self.model._meta.perms_per_instance:
+        if self.perms_per_instance:
             return self.has_perm(request.user, 'delete', obj=obj)
 
         return self.has_perm(request.user, 'delete')

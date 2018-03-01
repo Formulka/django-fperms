@@ -6,4 +6,5 @@ from articles.models import Article
 
 @admin.register(Article)
 class ArticleAdmin(PermAdmin):
-    pass
+
+    perms_per_instance = True
