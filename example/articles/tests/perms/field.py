@@ -10,6 +10,7 @@ class FieldPermTestCaseMixin:
 
     def _create_add_perm(self):
         return Perm.objects.create(
+            type=Perm.PERM_TYPE_FIELD,
             codename='add',
             content_type=self._get_content_type(),
             field_name='name',
@@ -17,6 +18,7 @@ class FieldPermTestCaseMixin:
 
     def _create_delete_perm(self):
         return Perm.objects.create(
+            type=Perm.PERM_TYPE_FIELD,
             codename='delete',
             content_type=self._get_content_type(),
             field_name='name',

@@ -10,12 +10,14 @@ class ModelPermTestCaseMixin:
 
     def _create_add_perm(self):
         return Perm.objects.create(
+            type=Perm.PERM_TYPE_MODEL,
             codename='add',
             content_type=self._get_content_type()
         )
 
     def _create_delete_perm(self):
         return Perm.objects.create(
+            type=Perm.PERM_TYPE_MODEL,
             codename='delete',
             content_type=self._get_content_type()
         )

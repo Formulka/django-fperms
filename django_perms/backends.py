@@ -1,5 +1,6 @@
 from django.apps import apps
 from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
 from django_perms.models import Perm
@@ -31,4 +32,39 @@ class PermBackend(ModelBackend):
 
         ctypes = ContentType.objects.filter(app_label=app_label)
 
-        return Perm.objects.filter(userperms__user=user_obj, content_type__in=ctypes)
+        return Perm.objects.filter(user_perms__user=user_obj, content_type__in=ctypes)
+
+    def _get_user_permissions(self, user_obj):
+        return user_obj.perms.all()
+
+    def _get_group_permissions(self, user_obj):
+        user_groups_field = get_user_model()._meta.get_field('groups')
+        user_groups_query = 'group_perms__group__%s' % user_groups_field.related_query_name()
+
+        return Perm.objects.filter(**{user_groups_query: user_obj})
+
+    def _get_permissions(self, user_obj, obj, from_name):
+        """
+        Returns the permissions of `user_obj` from `from_name`. `from_name` can
+        be either "group" or "user" to return permissions from
+        `_get_group_permissions` or `_get_user_permissions` respectively.
+        """
+        if not user_obj.is_active or user_obj.is_anonymous or obj is not None:
+            return set()
+
+        perm_cache_name = '_perms_%s_perm_cache' % from_name
+        if not hasattr(user_obj, perm_cache_name):
+            if user_obj.is_superuser:
+                perms = Perm.objects.all()
+            else:
+                perms = getattr(self, '_get_%s_permissions' % from_name)(user_obj)
+            setattr(user_obj, perm_cache_name, set(perm.perm_str for perm in perms))
+        return getattr(user_obj, perm_cache_name)
+
+    def get_all_permissions(self, user_obj, obj=None):
+        if not user_obj.is_active or user_obj.is_anonymous or obj is not None:
+            return set()
+        if not hasattr(user_obj, '_perms_perm_cache'):
+            user_obj._perms_perm_cache = self.get_user_permissions(user_obj)
+            user_obj._perms_perm_cache.update(self.get_group_permissions(user_obj))
+        return user_obj._perm_cache

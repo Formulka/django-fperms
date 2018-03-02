@@ -16,12 +16,14 @@ class ObjectPermTestCaseMixin:
 
     def _create_add_perm(self):
         return Perm.objects.create(
+            type=Perm.PERM_TYPE_OBJECT,
             codename='add',
             content_object=self.article,
         )
 
     def _create_delete_perm(self):
         return Perm.objects.create(
+            type=Perm.PERM_TYPE_OBJECT,
             codename='delete',
             content_object=self.article,
         )
