@@ -4,8 +4,12 @@ from django.contrib.admin.views.main import ChangeList
 
 from django.utils.functional import cached_property
 
-from django_perms.models import Perm, UserPerm, GroupPerm
+from django_perms import get_perm_model
+from django_perms.models import UserPerm, GroupPerm, PERM_CODENAME_WILDCARD
 from django_perms.utils import get_content_type
+
+
+Perm = get_perm_model()
 
 
 class PermAdminMixin:
@@ -76,7 +80,6 @@ class PermModelAdmin(PermAdminMixin, ModelAdmin):
         }
 
         perm, _ = Perm.objects.get_or_create(**perm_kwargs)
-        print(user, perm)
         user.perms.add(perm)
 
     def has_perm(self, user, codename=None, obj=None):
@@ -84,6 +87,7 @@ class PermModelAdmin(PermAdminMixin, ModelAdmin):
             return True
 
         object_id = obj.pk if obj is not None else None
+
         try:
             perm = self._perms.get(codename=codename, object_id=object_id)
             return user.perms.has_perm(perm)

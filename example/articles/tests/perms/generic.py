@@ -11,16 +11,17 @@ class GenericPermTestCaseMixin:
             codename='export',
         )
 
+    def _create_perm_wildcard(self):
+        return Perm.objects.create(
+            codename='*',
+        )
+
 
 class GenericPermTestCase(GenericPermTestCaseMixin, TestCase):
 
     def test_perm_has_correct_type(self):
         perm = self._create_perm()
-        self.assertTrue(perm.is_generic_perm)
-
-    def test_perm_is_in_correct_queryset_filter(self):
-        perm = self._create_perm()
-        self.assertEquals(perm, Perm.objects.generic_perms().get())
+        self.assertTrue(perm.is_generic_perm())
 
 
 class ArticleUserGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleUserPermTestCase):
@@ -51,6 +52,13 @@ class ArticleUserGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleUserPe
         self.user.perms.add(export_perm)
 
         self.assertTrue(self.user.perms.has_perm('generic.export'))
+
+    def test_has_generic_perm_from_wildcard(self):
+        self._create_perm_wildcard()
+
+        self.user.perms.add('generic.*')
+
+        self.assertTrue(self.user.perms.has_perm('generic.whatever'))
 
 
 class ArticleGroupGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleGroupPermTestCase):

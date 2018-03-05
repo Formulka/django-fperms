@@ -1,4 +1,4 @@
-from django_perms.models import Perm
+from django_perms.models import Perm, PERM_TYPE_OBJECT, PERM_CODENAME_ADD, PERM_CODENAME_DELETE, PERM_CODENAME_WILDCARD
 
 from .base import ArticleTestCase, ArticleUserPermTestCase, ArticleGroupPermTestCase
 from .factories import ArticleFactory
@@ -16,15 +16,22 @@ class ObjectPermTestCaseMixin:
 
     def _create_add_perm(self):
         return Perm.objects.create(
-            type=Perm.PERM_TYPE_OBJECT,
-            codename='add',
+            type=PERM_TYPE_OBJECT,
+            codename=PERM_CODENAME_ADD,
             content_object=self.article,
         )
 
     def _create_delete_perm(self):
         return Perm.objects.create(
-            type=Perm.PERM_TYPE_OBJECT,
-            codename='delete',
+            type=PERM_TYPE_OBJECT,
+            codename=PERM_CODENAME_DELETE,
+            content_object=self.article,
+        )
+
+    def _create_wildcard_perm(self):
+        return Perm.objects.create(
+            type=PERM_TYPE_OBJECT,
+            codename=PERM_CODENAME_WILDCARD,
             content_object=self.article,
         )
 
@@ -33,11 +40,7 @@ class ObjectPermTestCase(ObjectPermTestCaseMixin, ArticleTestCase):
 
     def test_perm_has_correct_type(self):
         perm = self._create_perm()
-        self.assertTrue(perm.is_object_perm)
-
-    def test_perm_is_in_correct_queryset_filter(self):
-        perm = self._create_perm()
-        self.assertEquals(perm, Perm.objects.object_perms().get())
+        self.assertTrue(perm.is_object_perm())
 
 
 class ArticleUserObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleUserPermTestCase):
@@ -74,6 +77,13 @@ class ArticleUserObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleUserPerm
         self.user.perms.add(add_obj_perm)
 
         self.assertTrue(self.user.perms.has_perm('object.articles.Article.add', self.article))
+
+    def test_has_model_perm_from_wildcard(self):
+        self._create_wildcard_perm()
+
+        self.user.perms.add('object.articles.Article.*', self.article)
+
+        self.assertTrue(self.user.perms.has_perm('object.articles.Article.whatever', self.article))
 
 
 class ArticleGroupObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleGroupPermTestCase):

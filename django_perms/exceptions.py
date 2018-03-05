@@ -19,3 +19,7 @@ class IncorrectContentType(PermError):
 
 class PermNotUnique(PermError):
     pass
+
+
+class ImproperlyConfigured(PermError):
+    pass

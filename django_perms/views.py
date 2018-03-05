@@ -6,30 +6,30 @@ from django.views.generic import (
     ListView
 )
 
-from django_perms.models import Perm
+from django_perms.conf import settings
 
 
 class PermissionCreateView(CreateView):
 
-    model = Perm
+    model = settings.PERM_MODEL
 
 
 class PermissionDeleteView(DeleteView):
 
-    model = Perm
+    model = settings.PERM_MODEL
 
 
 class PermissionDetailView(DetailView):
 
-    model = Perm
+    model = settings.PERM_MODEL
 
 
 class PermissionUpdateView(UpdateView):
 
-    model = Perm
+    model = settings.PERM_MODEL
 
 
 class PermissionListView(ListView):
 
-    model = Perm
+    model = settings.PERM_MODEL
 

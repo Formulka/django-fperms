@@ -1,38 +1,58 @@
+from functools import partialmethod
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.validators import EMPTY_VALUES
 from django.db import models
+from django.db.models.base import ModelBase
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
 from django_perms.conf import settings as perm_settings
 from django_perms.managers import PermManager, PermRelatedManager
 
+PERM_CODENAME_ADD = 'add'
+PERM_CODENAME_CHANGE = 'change'
+PERM_CODENAME_DELETE = 'delete'
+PERM_CODENAME_WILDCARD = '*'
 
 DEFAULT_PERM_CODENAMES = {
-    'add': _('add'),
-    'change': _('change'),
-    'delete': _('delete'),
+    PERM_CODENAME_ADD: _('add'),
+    PERM_CODENAME_CHANGE: _('change'),
+    PERM_CODENAME_DELETE: _('delete'),
+    PERM_CODENAME_WILDCARD: _('wildcard'),
 }
 
 PERM_CODENAMES = dict(DEFAULT_PERM_CODENAMES, **perm_settings.PERM_CODENAMES)
 
+PERM_TYPE_GENERIC = 'generic'
+PERM_TYPE_MODEL = 'model'
+PERM_TYPE_OBJECT = 'object'
+PERM_TYPE_FIELD = 'field'
 
-class Perm(models.Model):
-    PERM_TYPE_GENERIC = 'generic'
-    PERM_TYPE_MODEL = 'model'
-    PERM_TYPE_OBJECT = 'object'
-    PERM_TYPE_FIELD = 'field'
+DEFAULT_PERM_TYPE_CHOICES = (
+    (PERM_TYPE_GENERIC, _('generic')),
+    (PERM_TYPE_MODEL, _('model')),
+    (PERM_TYPE_OBJECT, _('object')),
+    (PERM_TYPE_FIELD, _('field')),
+)
+PERM_TYPE_CHOICES = DEFAULT_PERM_TYPE_CHOICES + perm_settings.PERM_TYPE_CHOICES
 
-    PERM_TYPE_CHOICES = (
-        (PERM_TYPE_GENERIC, _('generic')),
-        (PERM_TYPE_MODEL, _('model')),
-        (PERM_TYPE_OBJECT, _('object')),
-        (PERM_TYPE_FIELD, _('field')),
-    )
+
+class PermMetaclass(ModelBase):
+
+    def __new__(mcs, name, bases, attrs):
+        new_class = super().__new__(mcs, name, bases, attrs)
+        for perm_type in PERM_TYPE_CHOICES:
+            setattr(new_class, 'is_%s_perm' % perm_type[0],
+                    partialmethod(new_class.is_TYPE_perm, perm_type=perm_type[0]))
+
+        return new_class
+
+
+class BasePerm(models.Model, metaclass=PermMetaclass):
 
     type = models.CharField(max_length=10, choices=PERM_TYPE_CHOICES, default=PERM_TYPE_GENERIC)
     codename = models.CharField(_('codename'), max_length=100)
@@ -51,6 +71,7 @@ class Perm(models.Model):
     objects = PermManager()
 
     class Meta:
+        abstract = True
         verbose_name = _('permission')
         verbose_name_plural = _('permissions')
         ordering = ('content_type', 'object_id', 'field_name', 'codename',)
@@ -77,21 +98,17 @@ class Perm(models.Model):
 
         return '.'.join(perm_str_args)
 
-    @property
-    def is_model_perm(self):
-        return self.type == self.PERM_TYPE_MODEL
+    def get_wildcard_perm(self):
+        return self.objects.filter(
+            type=self.type,
+            codename=PERM_CODENAME_WILDCARD,
+            content_type=self.content_type,
+            object_id=self.object_id,
+            field_name=self.field_name,
+        )
 
-    @property
-    def is_object_perm(self):
-        return self.type == self.PERM_TYPE_OBJECT
-
-    @property
-    def is_field_perm(self):
-        return self.type == self.PERM_TYPE_FIELD
-
-    @property
-    def is_generic_perm(self):
-        return self.type == self.PERM_TYPE_GENERIC
+    def is_TYPE_perm(self, perm_type):
+        return self.type == perm_type
 
     @property
     def _model_perm_name(self):
@@ -147,6 +164,10 @@ class Perm(models.Model):
         return []
 
 
+class Perm(BasePerm):
+    pass
+
+
 class UserPerm(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='user_perms')
@@ -170,7 +191,7 @@ class UserPerm(models.Model):
 class GroupPerm(models.Model):
 
     group = models.ForeignKey(Group, related_name='group_perms')
-    perm = models.ForeignKey(Perm, on_delete=models.CASCADE, related_name='group_perms')
+    perm = models.ForeignKey(perm_settings.PERM_MODEL, on_delete=models.CASCADE, related_name='group_perms')
 
     perm_holder_slug = 'group'
 

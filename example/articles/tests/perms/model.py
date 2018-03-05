@@ -1,6 +1,7 @@
-from django_perms.models import Perm
+from django_perms.models import Perm, PERM_TYPE_MODEL, PERM_CODENAME_WILDCARD
 
 from .base import ArticleTestCase, ArticleUserPermTestCase, ArticleGroupPermTestCase
+from .factories import DEFAULT_PASSWORD
 
 
 class ModelPermTestCaseMixin:
@@ -10,15 +11,22 @@ class ModelPermTestCaseMixin:
 
     def _create_add_perm(self):
         return Perm.objects.create(
-            type=Perm.PERM_TYPE_MODEL,
+            type=PERM_TYPE_MODEL,
             codename='add',
             content_type=self._get_content_type()
         )
 
     def _create_delete_perm(self):
         return Perm.objects.create(
-            type=Perm.PERM_TYPE_MODEL,
+            type=PERM_TYPE_MODEL,
             codename='delete',
+            content_type=self._get_content_type()
+        )
+
+    def _create_wildcard_perm(self):
+        return Perm.objects.create(
+            type=PERM_TYPE_MODEL,
+            codename=PERM_CODENAME_WILDCARD,
             content_type=self._get_content_type()
         )
 
@@ -27,11 +35,7 @@ class ModelPermTestCase(ModelPermTestCaseMixin, ArticleTestCase):
 
     def test_perm_has_correct_type(self):
         perm = self._create_perm()
-        self.assertTrue(perm.is_model_perm)
-
-    def test_perm_is_in_correct_queryset_filter(self):
-        perm = self._create_perm()
-        self.assertEquals(perm, Perm.objects.model_perms().get())
+        self.assertTrue(perm.is_model_perm())
 
 
 class ArticleUserModelPermPermTestCase(ModelPermTestCaseMixin, ArticleUserPermTestCase):
@@ -68,6 +72,13 @@ class ArticleUserModelPermPermTestCase(ModelPermTestCaseMixin, ArticleUserPermTe
         self.user.perms.add(add_perm)
 
         self.assertTrue(self.user.perms.has_perm('model.articles.Article.add'))
+
+    def test_has_model_perm_from_wildcard(self):
+        self._create_wildcard_perm()
+
+        self.user.perms.add('model.articles.Article.*')
+
+        self.assertTrue(self.user.perms.has_perm('model.articles.Article.whatever'))
 
 
 class ArticleGroupModelPermPermTestCase(ModelPermTestCaseMixin, ArticleGroupPermTestCase):

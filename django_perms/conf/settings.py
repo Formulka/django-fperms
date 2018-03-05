@@ -1,3 +1,5 @@
 from django.conf import settings
 
+PERM_TYPE_CHOICES = getattr(settings, 'PERM_TYPE_CHOICES', ())
 PERM_CODENAMES = getattr(settings, 'PERM_CODENAMES', {})
+PERM_MODEL = getattr(settings, 'PERM_CODENAMES', 'django_perms.Perm')
