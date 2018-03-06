@@ -4,8 +4,8 @@ from django.contrib.admin.views.main import ChangeList
 
 from django.utils.functional import cached_property
 
-from django_perms import get_perm_model
-from django_perms.models import UserPerm, GroupPerm, PERM_CODENAME_WILDCARD
+from django_perms import get_perm_model, enums
+from django_perms.models import UserPerm, GroupPerm
 from django_perms.utils import get_content_type
 
 
@@ -73,7 +73,7 @@ class PermModelAdmin(PermAdminMixin, ModelAdmin):
     def add_perm(self, user, codename, obj):
         object_id = obj.pk if obj is not None else None
         perm_kwargs = {
-            'type': Perm.PERM_TYPE_OBJECT,
+            'type': enums.PERM_TYPE_OBJECT,
             'content_type': get_content_type(self.model),
             'object_id': object_id,
             'codename': codename,

@@ -1,4 +1,5 @@
-from django_perms.models import Perm, PERM_TYPE_MODEL, PERM_CODENAME_WILDCARD
+from django_perms import enums
+from django_perms.models import Perm
 
 from .base import ArticleTestCase, ArticleUserPermTestCase, ArticleGroupPermTestCase
 from .factories import DEFAULT_PASSWORD
@@ -11,22 +12,22 @@ class ModelPermTestCaseMixin:
 
     def _create_add_perm(self):
         return Perm.objects.create(
-            type=PERM_TYPE_MODEL,
+            type=enums.PERM_TYPE_MODEL,
             codename='add',
             content_type=self._get_content_type()
         )
 
     def _create_delete_perm(self):
         return Perm.objects.create(
-            type=PERM_TYPE_MODEL,
+            type=enums.PERM_TYPE_MODEL,
             codename='delete',
             content_type=self._get_content_type()
         )
 
     def _create_wildcard_perm(self):
         return Perm.objects.create(
-            type=PERM_TYPE_MODEL,
-            codename=PERM_CODENAME_WILDCARD,
+            type=enums.PERM_TYPE_MODEL,
+            codename=enums.PERM_CODENAME_WILDCARD,
             content_type=self._get_content_type()
         )
 

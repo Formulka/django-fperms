@@ -1,4 +1,5 @@
-from django_perms.models import Perm, PERM_TYPE_OBJECT, PERM_CODENAME_ADD, PERM_CODENAME_DELETE, PERM_CODENAME_WILDCARD
+from django_perms import enums
+from django_perms.models import Perm
 
 from .base import ArticleTestCase, ArticleUserPermTestCase, ArticleGroupPermTestCase
 from .factories import ArticleFactory
@@ -16,22 +17,22 @@ class ObjectPermTestCaseMixin:
 
     def _create_add_perm(self):
         return Perm.objects.create(
-            type=PERM_TYPE_OBJECT,
-            codename=PERM_CODENAME_ADD,
+            type=enums.PERM_TYPE_OBJECT,
+            codename=enums.PERM_CODENAME_ADD,
             content_object=self.article,
         )
 
     def _create_delete_perm(self):
         return Perm.objects.create(
-            type=PERM_TYPE_OBJECT,
-            codename=PERM_CODENAME_DELETE,
+            type=enums.PERM_TYPE_OBJECT,
+            codename=enums.PERM_CODENAME_DELETE,
             content_object=self.article,
         )
 
     def _create_wildcard_perm(self):
         return Perm.objects.create(
-            type=PERM_TYPE_OBJECT,
-            codename=PERM_CODENAME_WILDCARD,
+            type=enums.PERM_TYPE_OBJECT,
+            codename=enums.PERM_CODENAME_WILDCARD,
             content_object=self.article,
         )
 

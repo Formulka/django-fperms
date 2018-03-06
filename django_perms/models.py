@@ -10,42 +10,16 @@ from django.db.models.base import ModelBase
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
+from django_perms import enums
 from django_perms.conf import settings as perm_settings
 from django_perms.managers import PermManager, PermRelatedManager
-
-PERM_CODENAME_ADD = 'add'
-PERM_CODENAME_CHANGE = 'change'
-PERM_CODENAME_DELETE = 'delete'
-PERM_CODENAME_WILDCARD = '*'
-
-DEFAULT_PERM_CODENAMES = {
-    PERM_CODENAME_ADD: _('add'),
-    PERM_CODENAME_CHANGE: _('change'),
-    PERM_CODENAME_DELETE: _('delete'),
-    PERM_CODENAME_WILDCARD: _('wildcard'),
-}
-
-PERM_CODENAMES = dict(DEFAULT_PERM_CODENAMES, **perm_settings.PERM_CODENAMES)
-
-PERM_TYPE_GENERIC = 'generic'
-PERM_TYPE_MODEL = 'model'
-PERM_TYPE_OBJECT = 'object'
-PERM_TYPE_FIELD = 'field'
-
-DEFAULT_PERM_TYPE_CHOICES = (
-    (PERM_TYPE_GENERIC, _('generic')),
-    (PERM_TYPE_MODEL, _('model')),
-    (PERM_TYPE_OBJECT, _('object')),
-    (PERM_TYPE_FIELD, _('field')),
-)
-PERM_TYPE_CHOICES = DEFAULT_PERM_TYPE_CHOICES + perm_settings.PERM_TYPE_CHOICES
 
 
 class PermMetaclass(ModelBase):
 
     def __new__(mcs, name, bases, attrs):
         new_class = super().__new__(mcs, name, bases, attrs)
-        for perm_type in PERM_TYPE_CHOICES:
+        for perm_type in enums.PERM_TYPE_CHOICES:
             setattr(new_class, 'is_%s_perm' % perm_type[0],
                     partialmethod(new_class.is_TYPE_perm, perm_type=perm_type[0]))
 
@@ -54,9 +28,21 @@ class PermMetaclass(ModelBase):
 
 class BasePerm(models.Model, metaclass=PermMetaclass):
 
-    type = models.CharField(max_length=10, choices=PERM_TYPE_CHOICES, default=PERM_TYPE_GENERIC)
-    codename = models.CharField(_('codename'), max_length=100)
-    name = models.CharField(_('name'), max_length=255, null=True, blank=True)
+    type = models.CharField(
+        max_length=10,
+        choices=enums.PERM_TYPE_CHOICES,
+        default=enums.PERM_TYPE_GENERIC,
+    )
+    codename = models.CharField(
+        _('codename'),
+        max_length=100,
+    )
+    name = models.CharField(
+        _('name'),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
     content_type = models.ForeignKey(
         ContentType,
         models.CASCADE,
@@ -64,9 +50,18 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
         blank=True,
         null=True,
     )
-    object_id = models.SmallIntegerField(_('object pk'), null=True, blank=True)
+    object_id = models.SmallIntegerField(
+        _('object pk'),
+        null=True,
+        blank=True,
+    )
     content_object = GenericForeignKey()
-    field_name = models.CharField(_('field name'), max_length=100, null=True, blank=True)
+    field_name = models.CharField(
+        _('field name'),
+        max_length=100,
+        null=True,
+        blank=True,
+    )
 
     objects = PermManager()
 
@@ -75,13 +70,15 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
         verbose_name = _('permission')
         verbose_name_plural = _('permissions')
         ordering = ('content_type', 'object_id', 'field_name', 'codename',)
-        unique_together = (('type', 'codename', 'content_type', 'object_id', 'field_name'),)
+        unique_together = (
+            ('type', 'codename', 'content_type', 'object_id', 'field_name'),
+        )
 
     def __str__(self):
         if self.name:
             return self.name
 
-        permission_name = str(PERM_CODENAMES.get(self.codename, _('Permission')))
+        permission_name = str(enums.PERM_CODENAMES.get(self.codename, _('Permission')))
         name = getattr(self, '_%s_perm_name' % self.type, '')
 
         return ' | '.join(('Permission', name, permission_name))
@@ -101,7 +98,7 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
     def get_wildcard_perm(self):
         return self.objects.filter(
             type=self.type,
-            codename=PERM_CODENAME_WILDCARD,
+            codename=enums.PERM_CODENAME_WILDCARD,
             content_type=self.content_type,
             object_id=self.object_id,
             field_name=self.field_name,
@@ -170,8 +167,15 @@ class Perm(BasePerm):
 
 class UserPerm(models.Model):
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='user_perms')
-    perm = models.ForeignKey(Perm, on_delete=models.CASCADE, related_name='user_perms')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='user_perms',
+    )
+    perm = models.ForeignKey(
+        perm_settings.PERM_MODEL,
+        on_delete=models.CASCADE,
+        related_name='user_perms',
+    )
 
     perm_holder_slug = 'user'
 
@@ -179,7 +183,9 @@ class UserPerm(models.Model):
         verbose_name = _('user perm')
         verbose_name_plural = _('user perms')
         ordering = ('user',)
-        unique_together = ('user', 'perm')
+        unique_together = (
+            ('user', 'perm'),
+        )
 
     def __str__(self):
         return '%s | %s' % (
@@ -199,7 +205,9 @@ class GroupPerm(models.Model):
         verbose_name = _('group perm')
         verbose_name_plural = _('group perms')
         ordering = ('group',)
-        unique_together = ('group', 'perm')
+        unique_together = (
+            ('group', 'perm'),
+        )
 
     def __str__(self):
         return '%s | %s' % (

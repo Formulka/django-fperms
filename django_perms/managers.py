@@ -1,10 +1,23 @@
+from functools import partialmethod
+
 from django.db import models
 
-from django_perms import get_perm_model
+from django_perms import get_perm_model, enums
 from django_perms.utils import get_perm, get_perm_kwargs
 
 
-class PermManager(models.Manager):
+class PermManagerMetaclass(type):
+
+    def __new__(mcs, name, bases, attrs):
+        new_class = super().__new__(mcs, name, bases, attrs)
+        for perm_type in enums.PERM_TYPE_CHOICES:
+            setattr(new_class, '%s_perms' % perm_type[0],
+                    partialmethod(new_class.TYPE_perms, perm_type=perm_type[0]))
+
+        return new_class
+
+
+class PermManager(models.Manager, metaclass=PermManagerMetaclass):
 
     def perm_exists(self, perm, obj=None):
         try:
@@ -20,6 +33,9 @@ class PermManager(models.Manager):
     def create_from_str(self, perm, obj=None):
         perm_kwargs = get_perm_kwargs(perm, obj)
         return self.create(**perm_kwargs)
+
+    def TYPE_perms(self, perm_type):
+        return self.get_queryset().filter(perm_type=perm_type)
 
 
 class PermRelatedManager:
@@ -57,10 +73,15 @@ class PermRelatedManager:
 
         return self.get_queryset().filter(perm=get_perm(perm, obj)).delete()
 
+    def get_perm(self, perm, obj=None):
+        perm = get_perm(perm, obj)
+
+        return self.all().get(pk=perm.pk)
+
     def has_perm(self, perm, obj=None):
         try:
-            perm = get_perm(perm, obj)
+            self.get_perm(perm, obj)
         except get_perm_model().DoesNotExist:
             return False
 
-        return perm in self.all()
+        return True
