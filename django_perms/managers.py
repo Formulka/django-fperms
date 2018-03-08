@@ -4,6 +4,7 @@ from django.db import models
 
 from django_perms import get_perm_model, enums
 from django_perms.utils import get_perm, get_perm_kwargs
+from django.utils.functional import cached_property
 
 
 PERM_USER_SLUG = 'user'
@@ -61,11 +62,17 @@ class PermRelatedManager:
 
     def all(self):
         # Get all permissions for related group or user
-        perm_pks = set(self.get_queryset().values_list('perm__pk', flat=True))
-        if self.perm_holder_slug == PERM_USER_SLUG:
-            for group in self.perm_holder.groups.all():
-                perm_pks.update(set(group.perms.all().values_list('pk', flat=True)))
-        return get_perm_model().objects.filter(pk__in=perm_pks)
+        all_perm_cache_name = 'all_perm_cache'
+        if not hasattr(self, all_perm_cache_name):
+            perm_pks = set(self.get_queryset().values_list('perm__pk', flat=True))
+
+            # If the related object is a user, add permissions from its groups
+            if self.perm_holder_slug == PERM_USER_SLUG:
+                for group in self.perm_holder.groups.all():
+                    perm_pks.update(set(group.perms.all().values_list('pk', flat=True)))
+
+            setattr(self, all_perm_cache_name, get_perm_model().objects.filter(pk__in=perm_pks))
+        return getattr(self, all_perm_cache_name)
 
     def add(self, perm, obj=None):
         # add a permission to the related group or user
@@ -77,8 +84,7 @@ class PermRelatedManager:
 
     def remove(self, perm, obj=None):
         # remove a permission from the related group or user
-
-        return self.get_queryset().filter(perm=get_perm(perm, obj)).delete()
+        return self.get_perm(perm, obj=obj).remove()
 
     def get_perm(self, perm, obj=None):
         perm = get_perm(perm, obj)
