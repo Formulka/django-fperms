@@ -46,16 +46,14 @@ class ArticleUserModelPermPermTestCase(ModelPermTestCaseMixin, ArticleUserPermTe
 
         self.user.perms.add(perm)
 
-        # test the new user perm is the created model perm
-        self.assertEquals(perm, self.user.perms.all().get())
+        self.assertTrue(self.user.perms.has_perm(perm))
 
     def test_add_model_perm_by_str(self):
         add_perm = self._create_add_perm()
 
         self.user.perms.add('model.articles.Article.add')
 
-        # test the new user perm is the created add model perm
-        self.assertEquals(add_perm, self.user.perms.all().get())
+        self.assertTrue(self.user.perms.has_perm(add_perm))
 
     def test_fail_add_model_perm_by_non_existent_codename(self):
         self._create_perm()
@@ -66,13 +64,6 @@ class ArticleUserModelPermPermTestCase(ModelPermTestCaseMixin, ArticleUserPermTe
         self._create_perm()
         with self.assertRaises(LookupError):
             self.user.perms.add('model.articles.Bar.fap')
-
-    def test_has_model_perm(self):
-        add_perm = self._create_add_perm()
-
-        self.user.perms.add(add_perm)
-
-        self.assertTrue(self.user.perms.has_perm('model.articles.Article.add'))
 
     def test_has_model_perm_from_wildcard(self):
         self._create_wildcard_perm()
@@ -89,16 +80,21 @@ class ArticleGroupModelPermPermTestCase(ModelPermTestCaseMixin, ArticleGroupPerm
 
         self.group.perms.add(perm)
 
-        # test the new user perm is the created model perm
-        self.assertEquals(perm, self.group.perms.all().get())
+        self.assertTrue(self.group.perms.has_perm(perm))
 
     def test_add_model_perm_by_str(self):
         add_perm = self._create_add_perm()
 
         self.group.perms.add('model.articles.Article.add')
 
-        # test the new user perm is the created add model perm
-        self.assertEquals(add_perm, self.group.perms.all().get())
+        self.assertTrue(self.group.perms.has_perm(add_perm))
+
+        # test perm is correctly available to the user as well
+        self.assertFalse(self.user.perms.has_perm(add_perm))
+
+        self.user.groups.add(self.group)
+
+        self.assertTrue(self.user.perms.has_perm(add_perm))
 
     def test_fail_add_model_perm_non_existent_codename(self):
         self._create_perm()

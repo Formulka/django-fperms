@@ -70,4 +70,4 @@ class PermBackend(ModelBackend):
         if not hasattr(user_obj, '_perms_perm_cache'):
             user_obj._perms_perm_cache = self.get_user_permissions(user_obj)
             user_obj._perms_perm_cache.update(self.get_group_permissions(user_obj))
-        return user_obj._perm_cache
+        return user_obj._perms_perm_cache

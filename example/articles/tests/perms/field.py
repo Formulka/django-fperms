@@ -48,16 +48,14 @@ class ArticleUserFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleUserPermTe
 
         self.user.perms.add(perm)
 
-        # test the new user perm is the created field perm
-        self.assertEquals(perm, self.user.perms.all().get())
+        self.user.perms.has_perm(perm)
 
     def test_add_field_perm_by_str(self):
         add_name_perm = self._create_add_perm()
 
         self.user.perms.add('field.articles.Article.name.add')
 
-        # test the new user perm is the created add name field perm
-        self.assertEquals(add_name_perm, self.user.perms.all().get())
+        self.user.perms.has_perm(add_name_perm)
 
     def test_fail_add_field_perm_non_existent_codename(self):
         self._create_perm()
@@ -73,13 +71,6 @@ class ArticleUserFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleUserPermTe
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
             self.user.perms.add('field.articles.Article.foo.add')
-
-    def test_has_field_perm(self):
-        add_name_perm = self._create_add_perm()
-
-        self.user.perms.add(add_name_perm)
-
-        self.assertTrue(self.user.perms.has_perm('field.articles.Article.name.add'))
 
     def test_has_field_perm_from_wildcard(self):
         self._create_wildcard_perm()
@@ -110,16 +101,21 @@ class ArticleGroupFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleGroupPerm
 
         self.group.perms.add(perm)
 
-        # test the new user perm is the created field perm
-        self.assertEquals(perm, self.group.perms.all().get())
+        self.group.perms.has_perm(perm)
 
     def test_add_field_perm_by_str(self):
         add_name_perm = self._create_add_perm()
 
         self.group.perms.add('field.articles.Article.name.add')
 
-        # test the new user perm is the created add name field perm
-        self.assertEquals(add_name_perm, self.group.perms.all().get())
+        self.assertTrue(self.group.perms.has_perm(add_name_perm))
+
+        # test perm is correctly available to the user as well
+        self.assertFalse(self.user.perms.has_perm(add_name_perm))
+
+        self.user.groups.add(self.group)
+
+        self.assertTrue(self.user.perms.has_perm(add_name_perm))
 
     def test_fail_add_field_perm_non_existent_codename(self):
         self._create_perm()

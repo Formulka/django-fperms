@@ -1,7 +1,10 @@
-from django_perms.models import Perm
+from django_perms import get_perm_model
 from django.test import TestCase
 
 from .base import ArticleUserPermTestCase, ArticleGroupPermTestCase
+
+
+Perm = get_perm_model()
 
 
 class GenericPermTestCaseMixin:
@@ -31,27 +34,18 @@ class ArticleUserGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleUserPe
 
         self.user.perms.add(perm)
 
-        # test the new user perm is the created generic perm
-        self.assertEquals(perm, self.user.perms.all().get())
+        self.assertTrue(self.user.perms.has_perm(perm))
 
     def test_add_generic_perm_by_codename(self):
         export_perm = self._create_perm()
 
         self.user.perms.add('generic.export')
 
-        # test the new user perm is the created export generic perm
-        self.assertEquals(export_perm, self.user.perms.all().get())
+        self.assertTrue(self.user.perms.has_perm(export_perm))
 
     def test_fail_add_generic_perm_non_existent_codename(self):
         with self.assertRaises(Perm.DoesNotExist):
             self.user.perms.add('generic.export')
-
-    def test_has_generic_perm(self):
-        export_perm = self._create_perm()
-
-        self.user.perms.add(export_perm)
-
-        self.assertTrue(self.user.perms.has_perm('generic.export'))
 
     def test_has_generic_perm_from_wildcard(self):
         self._create_perm_wildcard()
@@ -68,24 +62,23 @@ class ArticleGroupGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleGroup
 
         self.group.perms.add(perm)
 
-        # test the new user perm is the created generic perm
-        self.assertEquals(perm, self.group.perms.all().get())
+        # test the new group perm is the created generic perm
+        self.assertTrue(self.group.perms.has_perm(perm))
 
     def test_add_generic_perm_by_codename(self):
         export_perm = self._create_perm()
 
         self.group.perms.add('generic.export')
 
-        # test the new user perm is the created export generic perm
-        self.assertEquals(export_perm, self.group.perms.all().get())
+        self.assertTrue(self.group.perms.has_perm(export_perm))
+
+        # test perm is correctly available to the user as well
+        self.assertFalse(self.user.perms.has_perm(export_perm))
+
+        self.user.groups.add(self.group)
+
+        self.assertTrue(self.user.perms.has_perm(export_perm))
 
     def test_fail_add_generic_perm_non_existent_codename(self):
         with self.assertRaises(Perm.DoesNotExist):
             self.group.perms.add('generic.export')
-
-    def test_has_generic_perm(self):
-        self._create_perm()
-
-        self.group.perms.add('generic.export')
-
-        self.assertTrue(self.group.perms.has_perm('generic.export'))

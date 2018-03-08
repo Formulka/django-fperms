@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django_perms import enums
 from django_perms.conf import settings as perm_settings
-from django_perms.managers import PermManager, PermRelatedManager
+from django_perms.managers import PermManager, PermRelatedManager, PERM_USER_SLUG, PERM_GROUP_SLUG
 
 
 class PermMetaclass(ModelBase):
@@ -177,7 +177,7 @@ class UserPerm(models.Model):
         related_name='user_perms',
     )
 
-    perm_holder_slug = 'user'
+    perm_holder_slug = PERM_USER_SLUG
 
     class Meta:
         verbose_name = _('user perm')
@@ -199,7 +199,7 @@ class GroupPerm(models.Model):
     group = models.ForeignKey(Group, related_name='group_perms')
     perm = models.ForeignKey(perm_settings.PERM_MODEL, on_delete=models.CASCADE, related_name='group_perms')
 
-    perm_holder_slug = 'group'
+    perm_holder_slug = PERM_GROUP_SLUG
 
     class Meta:
         verbose_name = _('group perm')

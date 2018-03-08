@@ -6,6 +6,10 @@ from django_perms import get_perm_model, enums
 from django_perms.utils import get_perm, get_perm_kwargs
 
 
+PERM_USER_SLUG = 'user'
+PERM_GROUP_SLUG = 'group'
+
+
 class PermManagerMetaclass(type):
 
     def __new__(mcs, name, bases, attrs):
@@ -57,7 +61,10 @@ class PermRelatedManager:
 
     def all(self):
         # Get all permissions for related group or user
-        perm_pks = self.get_queryset().values_list('perm__pk', flat=True)
+        perm_pks = set(self.get_queryset().values_list('perm__pk', flat=True))
+        if self.perm_holder_slug == PERM_USER_SLUG:
+            for group in self.perm_holder.groups.all():
+                perm_pks.update(set(group.perms.all().values_list('pk', flat=True)))
         return get_perm_model().objects.filter(pk__in=perm_pks)
 
     def add(self, perm, obj=None):
