@@ -3,8 +3,7 @@ from functools import partialmethod
 from django.db import models
 
 from django_perms import get_perm_model, enums
-from django_perms.utils import get_perm, get_perm_kwargs
-from django.utils.functional import cached_property
+from django_perms.utils import get_perm
 
 
 PERM_USER_SLUG = 'user'
@@ -14,6 +13,7 @@ PERM_GROUP_SLUG = 'group'
 class PermManagerMetaclass(type):
 
     def __new__(mcs, name, bases, attrs):
+        # adds magical helper methods to the perm manager to filter specified perm type
         new_class = super().__new__(mcs, name, bases, attrs)
         for perm_type in enums.PERM_TYPE_CHOICES:
             setattr(new_class, '%s_perms' % perm_type[0],
@@ -25,6 +25,7 @@ class PermManagerMetaclass(type):
 class PermManager(models.Manager, metaclass=PermManagerMetaclass):
 
     def perm_exists(self, perm, obj=None):
+        # determine whether a permission exists
         try:
             get_perm(perm, obj)
         except self.DoesNotExist:
@@ -32,14 +33,18 @@ class PermManager(models.Manager, metaclass=PermManagerMetaclass):
         return True
 
     def get_from_str(self, perm, obj=None):
-        perm_kwargs = get_perm_kwargs(perm, obj)
+        # get a perm instance based on perm kwargs
+        perm_kwargs = get_perm_model().get_perm_kwargs(perm, obj)
         return self.get(**perm_kwargs)
 
     def create_from_str(self, perm, obj=None):
-        perm_kwargs = get_perm_kwargs(perm, obj)
+        # create a perm instance based on perm kwargs
+        perm_kwargs = get_perm_model().get_perm_kwargs(perm, obj)
         return self.create(**perm_kwargs)
 
     def TYPE_perms(self, perm_type):
+        # return all perms of the specified type
+        # used to generate magical helper methods in the metaclass
         return self.get_queryset().filter(perm_type=perm_type)
 
 
@@ -61,7 +66,7 @@ class PermRelatedManager:
         })
 
     def all(self):
-        # Get all permissions for related group or user
+        # get all permissions for related group or user
         all_perm_cache_name = 'all_perm_cache'
         if not hasattr(self, all_perm_cache_name):
             perm_pks = set(self.get_queryset().values_list('perm__pk', flat=True))
@@ -86,12 +91,18 @@ class PermRelatedManager:
         # remove a permission from the related group or user
         return self.get_perm(perm, obj=obj).remove()
 
+    def clear(self):
+        # remove all permissions from the related group or user
+        self.all().remove()
+
     def get_perm(self, perm, obj=None):
+        # get a permission if it belongs to group or user
         perm = get_perm(perm, obj)
 
         return self.all().get(pk=perm.pk)
 
     def has_perm(self, perm, obj=None):
+        # determine whether a user or a group has provided permission
         try:
             self.get_perm(perm, obj)
         except get_perm_model().DoesNotExist:
