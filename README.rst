@@ -5,11 +5,11 @@ django-perms
 .. image:: https://badge.fury.io/py/django-perms.svg
     :target: https://badge.fury.io/py/django-perms
 
-.. image:: https://travis-ci.org/formulka/django-perms.svg?branch=master
-    :target: https://travis-ci.org/formulka/django-perms
+.. image:: https://travis-ci.org/Formulka/django-perms.svg?branch=master
+    :target: https://travis-ci.org/Formulka/django-perms
 
-.. image:: https://codecov.io/gh/formulka/django-perms/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/formulka/django-perms
+.. image:: https://codecov.io/gh/Formulka/django-perms/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/Formulka/django-perms
 
 Flexible Django permissions backend
 

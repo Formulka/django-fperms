@@ -122,6 +122,8 @@ class PermRelatedManager:
 
     def has_perm(self, perm, obj=None):
         # determine whether a user or a group has provided permission
+        if perm is None:
+            return False
         try:
             self.get_perm(perm, obj)
         except get_perm_model().DoesNotExist:
