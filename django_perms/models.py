@@ -32,6 +32,7 @@ class PermMetaclass(ModelBase):
 class BasePerm(models.Model, metaclass=PermMetaclass):
 
     PERM_TYPE_CHOICES = enums.PERM_TYPE_CHOICES
+    PERM_CODENAMES = enums.PERM_CODENAMES
 
     type = models.CharField(
         max_length=10,
@@ -83,7 +84,7 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
         if self.name:
             return self.name
 
-        permission_name = str(enums.PERM_CODENAMES.get(self.codename, _('Permission')))
+        permission_name = str(self.PERM_CODENAMES.get(self.codename, self.codename))
         name = getattr(self, '_%s_perm_name' % self.type, '')
 
         return ' | '.join(('Permission', name, permission_name))

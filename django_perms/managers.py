@@ -37,10 +37,19 @@ class PermManager(models.Manager, metaclass=PermManagerMetaclass):
         perm_kwargs = get_perm_model().get_perm_kwargs(perm, obj)
         return self.get(**perm_kwargs)
 
-    def create_from_str(self, perm, obj=None):
+    def _create_from_str(self, perm, obj):
         # create a perm instance based on perm kwargs
         perm_kwargs = get_perm_model().get_perm_kwargs(perm, obj)
         return self.create(**perm_kwargs)
+
+    def create_from_str(self, perms, obj=None):
+        if isinstance(perms, str):
+            perms = [perms]
+
+        obj_perms = []
+        for perm in perms:
+            obj_perms.append(self._create_from_str(perm, obj))
+        return obj_perms
 
     def TYPE_perms(self, perm_type):
         # return all perms of the specified type
@@ -79,13 +88,23 @@ class PermRelatedManager:
             setattr(self, all_perm_cache_name, get_perm_model().objects.filter(pk__in=perm_pks))
         return getattr(self, all_perm_cache_name)
 
-    def add(self, perm, obj=None):
+    def _add(self, perm, obj):
         # add a permission to the related group or user
         obj_perm, _ = self.perm_model.objects.get_or_create(**{
             self.perm_holder_slug: self.perm_holder,
             'perm': get_perm(perm, obj),
         })
         return obj_perm
+
+    def add(self, perms, obj=None):
+        if isinstance(perms, str) or isinstance(perms, get_perm_model()):
+            perms = [perms]
+
+        obj_perms = []
+        for perm in perms:
+            obj_perms.append(self._add(perm, obj))
+
+        return obj_perms
 
     def remove(self, perm, obj=None):
         # remove a permission from the related group or user
