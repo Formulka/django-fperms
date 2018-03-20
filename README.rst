@@ -35,18 +35,6 @@ Add it to your `INSTALLED_APPS`:
         ...
     )
 
-Add django-fperms's URL patterns:
-
-.. code-block:: python
-
-    from fperms import urls as fperms_urls
-
-
-    urlpatterns = [
-        ...
-        url(r'^', include(fperms_urls)),
-        ...
-    ]
 
 Features
 --------
