@@ -4,9 +4,9 @@ Installation
 
 At the command line::
 
-    $ easy_install django-perms
+    $ easy_install django-fperms
 
 Or, if you have virtualenvwrapper installed::
 
-    $ mkvirtualenv django-perms
-    $ pip install django-perms
+    $ mkvirtualenv django-fperms
+    $ pip install django-fperms

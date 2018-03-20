@@ -2,25 +2,25 @@
 Usage
 =====
 
-To use django-perms in a project, add it to your `INSTALLED_APPS`:
+To use django-fperms in a project, add it to your `INSTALLED_APPS`:
 
 .. code-block:: python
 
     INSTALLED_APPS = (
         ...
-        'django_perms.apps.DjangoPermsConfig',
+        'fperms.apps.FPermsConfig',
         ...
     )
 
-Add django-perms's URL patterns:
+Add django-fperms's URL patterns:
 
 .. code-block:: python
 
-    from django_perms import urls as django_perms_urls
+    from fperms import urls as fperms_urls
 
 
     urlpatterns = [
         ...
-        url(r'^', include(django_perms_urls)),
+        url(r'^', include(fperms_urls)),
         ...
     ]

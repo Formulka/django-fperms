@@ -2,6 +2,6 @@
 from django.apps import AppConfig
 
 
-class DjangoPermsConfig(AppConfig):
+class FPermsConfig(AppConfig):
     name = 'fperms'
 

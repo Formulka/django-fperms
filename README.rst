@@ -1,29 +1,29 @@
 =============================
-django-perms
+django-fperms
 =============================
 
-.. image:: https://badge.fury.io/py/django-perms.svg
-    :target: https://badge.fury.io/py/django-perms
+.. image:: https://badge.fury.io/py/django-fperms.svg
+    :target: https://badge.fury.io/py/django-fperms
 
-.. image:: https://travis-ci.org/Formulka/django-perms.svg?branch=master
-    :target: https://travis-ci.org/Formulka/django-perms
+.. image:: https://travis-ci.org/Formulka/django-fperms.svg?branch=master
+    :target: https://travis-ci.org/Formulka/django-fperms
 
-.. image:: https://codecov.io/gh/Formulka/django-perms/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/Formulka/django-perms
+.. image:: https://codecov.io/gh/Formulka/django-fperms/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/Formulka/django-fperms
 
 Flexible Django permissions backend
 
 Documentation
 -------------
 
-The full documentation is at https://django-perms.readthedocs.io.
+The full documentation is at https://django-fperms.readthedocs.io.
 
 Quickstart
 ----------
 
-Install django-perms::
+Install django-fperms::
 
-    pip install django-perms
+    pip install django-fperms
 
 Add it to your `INSTALLED_APPS`:
 
@@ -31,20 +31,20 @@ Add it to your `INSTALLED_APPS`:
 
     INSTALLED_APPS = (
         ...
-        'django_perms.apps.DjangoPermsConfig',
+        'fperms.apps.FPermsConfig',
         ...
     )
 
-Add django-perms's URL patterns:
+Add django-fperms's URL patterns:
 
 .. code-block:: python
 
-    from django_perms import urls as django_perms_urls
+    from fperms import urls as fperms_urls
 
 
     urlpatterns = [
         ...
-        url(r'^', include(django_perms_urls)),
+        url(r'^', include(fperms_urls)),
         ...
     ]
 
