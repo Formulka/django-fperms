@@ -10,7 +10,7 @@ except ImportError:
 
 
 def get_version(*file_paths):
-    """Retrieves the version from django_perms/__init__.py"""
+    """Retrieves the version from fperms/__init__.py"""
     filename = os.path.join(os.path.dirname(__file__), *file_paths)
     version_file = open(filename).read()
     version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
@@ -20,7 +20,7 @@ def get_version(*file_paths):
     raise RuntimeError('Unable to find version string.')
 
 
-version = get_version("django_perms", "__init__.py")
+version = get_version("fperms", "__init__.py")
 
 
 if sys.argv[-1] == 'publish':
@@ -44,21 +44,21 @@ readme = open('README.rst').read()
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
-    name='django-perms',
+    name='django-fperms',
     version=version,
     description="""Flexible Django permissions backend""",
     long_description=readme + '\n\n' + history,
     author='Petr Olah',
     author_email='djangoguru@gmail.com',
-    url='https://github.com/formulka/django-perms',
+    url='https://github.com/formulka/django-fperms',
     packages=[
-        'django_perms',
+        'fperms',
     ],
     include_package_data=True,
     install_requires=["django-model-utils>=2.0",],
     license="MIT",
     zip_safe=False,
-    keywords='django-perms',
+    keywords='django-fperms',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Framework :: Django',

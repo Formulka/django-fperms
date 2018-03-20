@@ -18,5 +18,5 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'', include('django_perms.urls', namespace='django_perms')),
+    url(r'', include('fperms.urls', namespace='fperms')),
 ]

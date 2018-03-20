@@ -11,11 +11,11 @@ from django.db.models.base import ModelBase
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
-from django_perms import enums
-from django_perms.conf import settings as perm_settings
-from django_perms.exceptions import ObjectNotPersisted, IncorrectContentType, IncorrectObject
-from django_perms.managers import PermManager, PermRelatedManager, PERM_USER_SLUG, PERM_GROUP_SLUG
-from django_perms.utils import is_obj_persisted
+from fperms import enums
+from fperms.conf import settings as perm_settings
+from fperms.exceptions import ObjectNotPersisted, IncorrectContentType, IncorrectObject
+from fperms.managers import PermManager, PermRelatedManager, PERM_USER_SLUG, PERM_GROUP_SLUG
+from fperms.utils import is_obj_persisted
 
 
 class PermMetaclass(ModelBase):

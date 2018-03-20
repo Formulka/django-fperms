@@ -3,8 +3,8 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
-from django_perms import get_perm_model
-from django_perms.utils import get_content_type
+from fperms import get_perm_model
+from fperms.utils import get_content_type
 
 
 Perm = get_perm_model()

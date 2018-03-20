@@ -1,4 +1,4 @@
-from django_perms.conf import settings
+from fperms.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 

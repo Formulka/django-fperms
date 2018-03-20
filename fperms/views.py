@@ -6,7 +6,7 @@ from django.views.generic import (
     ListView
 )
 
-from django_perms.conf import settings
+from fperms.conf import settings
 
 
 class PermissionCreateView(CreateView):

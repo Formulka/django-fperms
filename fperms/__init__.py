@@ -1,9 +1,9 @@
 __version__ = '0.1.0'
 
 from django.apps import apps as django_apps
-from django_perms.conf import settings
+from fperms.conf import settings
 
-from django_perms.exceptions import ImproperlyConfigured
+from fperms.exceptions import ImproperlyConfigured
 
 
 def get_perm_model():

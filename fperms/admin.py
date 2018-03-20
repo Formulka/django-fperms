@@ -4,9 +4,9 @@ from django.contrib.admin.views.main import ChangeList
 
 from django.utils.functional import cached_property
 
-from django_perms import get_perm_model, enums
-from django_perms.models import UserPerm, GroupPerm
-from django_perms.utils import get_content_type
+from fperms import get_perm_model, enums
+from fperms.models import UserPerm, GroupPerm
+from fperms.utils import get_content_type
 
 
 Perm = get_perm_model()

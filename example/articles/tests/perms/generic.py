@@ -1,4 +1,4 @@
-from django_perms import get_perm_model
+from fperms import get_perm_model
 from django.test import TestCase
 
 from .base import ArticleUserPermTestCase, ArticleGroupPermTestCase

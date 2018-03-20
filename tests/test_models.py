@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
 """
-test_django-perms
+test_django-fperms
 ------------
 
-Tests for `django-perms` models module.
+Tests for `django-fperms` models module.
 """
 
 from django.test import TestCase
 
-from django_perms import models
+from fperms import models
 
 
 class TestDjango_perms(TestCase):

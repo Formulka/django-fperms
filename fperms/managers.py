@@ -2,8 +2,8 @@ from functools import partialmethod
 
 from django.db import models
 
-from django_perms import get_perm_model, enums
-from django_perms.utils import get_perm
+from fperms import get_perm_model, enums
+from fperms.utils import get_perm
 
 
 PERM_USER_SLUG = 'user'

@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'django_perms',
+    'fperms',
 
     'articles',
 
@@ -124,5 +124,5 @@ STATIC_URL = '/static/'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'django_perms.backends.PermBackend',
+    'fperms.backends.PermBackend',
 ]

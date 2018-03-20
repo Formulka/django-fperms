@@ -1,5 +1,5 @@
-from django_perms import enums
-from django_perms.models import Perm
+from fperms import enums
+from fperms.models import Perm
 
 from .base import ArticleTestCase, ArticleUserPermTestCase, ArticleGroupPermTestCase
 from .factories import DEFAULT_PASSWORD

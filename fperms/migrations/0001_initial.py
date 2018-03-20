@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
             name='UserPerm',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('perm', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_perms', to='django_perms.Perm')),
+                ('perm', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_perms', to='fperms.Perm')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_perms', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='groupperm',
             name='perm',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_perms', to='django_perms.Perm'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_perms', to='fperms.Perm'),
         ),
         migrations.AlterUniqueTogether(
             name='userperm',

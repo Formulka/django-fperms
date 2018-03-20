@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 
-from django_perms import get_perm_model, enums
+from fperms import get_perm_model, enums
 
 
 def is_obj_persisted(obj):

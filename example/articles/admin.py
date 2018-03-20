@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django_perms.admin import PermModelAdmin
+from fperms.admin import PermModelAdmin
 
 from articles.models import Article
 
