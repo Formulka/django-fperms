@@ -36,9 +36,6 @@ Add it to your `INSTALLED_APPS`:
     )
 
 
-Settings
---------
-
 Out of the box you have access to several new permission types:
 
 - **generic**: for general purpose project wide permissions
@@ -52,7 +49,7 @@ You can also create your own permission model subclassing the abstract base perm
 
     fperms.models.BasePerm
 
-and setting the `PERM_MODEL` variable in your project settings with the path to your custom model. E.g.
+and setting the ``PERM_MODEL`` variable in your project settings with the path to your custom model. E.g.
 
 .. code-block:: python
 
@@ -62,10 +59,175 @@ and setting the `PERM_MODEL` variable in your project settings with the path to 
 
 You can find an example of custom permission model at https://github.com/formulka/django-fperms-iscore
 
+Usage
+-----
+
+A superuser has for all intents and purposes permission to do everything. For regular users you can assign permissions directly or via a user group.
+
+**Creating a new permission**:
+
+You can create a new permission directly via its model or via a specially formated string:
+
+.. code-block:: python
+
+    from fperms import enums
+    from fperms.models import Perm
+
+    Perm.objects.create(
+        type=enums.PERM_TYPE_GENERIC,
+        codename='export',
+    )
+    Perm.objects.create_from_str('generic.export')
+
+**Assigning a permission**:
+
+You can assign existing permission via the custom ``perms`` manager available for both User (including custom ones) and Group models. You can add single permission or multiple both directly via its instance or using the formated string:
+
+.. code-block:: python
+
+    from django.auth.models import User, Group
+
+    from fperms.models import Perm
+
+    perm_export = Perm.objects.create(
+        type=enums.PERM_TYPE_GENERIC,
+        codename='export',
+    )
+    perm_import = Perm.objects.create(
+        type=enums.PERM_TYPE_GENERIC,
+        codename='import',
+    )
+
+    user = User.objects.get(pk=1)
+    user.perms.add(perm_export)
+    user.perms.add(perms=[perm_export, perm_import])
+
+    group = Group.objects.get(pk=1)
+    group.perms.add(perms=['generic.export', 'generic.import'])
+
+By default if said permission does not exist, it will raise an exception. You can override this behavior by setting ``PERM_AUTO_CREATE`` variable in your project settings to ``True``, assigning a permission will then create it as well if it does not exist.
+
+**Retrieving permission instance**:
+
+You can get a permission instance directly from the model or via the string representation.
+
+.. code-block:: python
+
+    perm = Perm.objects.get(type=enums.PERM_TYPE_GENERIC, codename='export')
+    perm = Perm.objects.get_from_str('generic.export')
+
+**Checking permission**:
+
+You can check whether the user or group has a required permission via ``has_perm`` method of the ``perms`` manager again using both the permission instance or the string representation.
+
+.. code-block:: python
+
+    ...
+    perm = Perm.objects.create(
+        type=enums.PERM_TYPE_GENERIC,
+        codename='export',
+    )
+
+    assert user.perms.has_perm(perm)
+    assert user.perms.has_perm('generic.export')
+
+Built in perm types
+-------------------
+
+**generic**
+
+- generic permission useful for project wide permissions
+- type is defined as ``fperms.enums.PERM_TYPE_GENERIC``, it is the default permission type
+- it requires ``type`` and ``codename`` fields (type being default only the codename is actually required)
+- string representation is ``'generic.<codename>'``
+
+.. code-block:: python
+
+    ...
+    # equivalent results:
+    Perm.objects.create(
+        codename='export',
+    )
+    Perm.objects.create_from_str('generic.export')
+
+**model**
+
+- model level permission analogous to the builtin django permissions
+- type is defined as ``fperms.enums.PERM_TYPE_MODEL``
+- it requires ``type``, ``content_type`` and ``codename`` fields
+- django admin is using codenames ``add``, ``change`` and ``delete`` for its inner workings
+- string representation is ``'model.<app_label>.<module_name>.<codename>'``
+
+.. code-block:: python
+
+    from fperms import enums
+    from fprems.utils import get_content_type
+    ...
+    # equivalent results:
+    Perm.objects.create(
+        type=enums.PERM_TYPE_MODEL,
+        content_type=get_content_type(Article),
+        codename='add',
+    )
+    Perm.objects.create_from_str('model.articles.Article.add')
+
+**object**
+
+- model level permission specific per object
+- type is defined as ``fperms.enums.PERM_TYPE_OBJECT``
+- it requires ``type``, ``content_type``, ``object_id`` and ``codename`` fields
+- django admin is using codenames ``add``, ``change`` and ``delete`` for its inner workings
+- string representation is ``'object.<app_label>.<module_name>.<codename>'``
+
+.. code-block:: python
+
+    from fperms import enums
+    from fprems.utils import get_content_type
+    ...
+    article = Article.objects.get(pk=1)
+    # equivalent results:
+    Perm.objects.create(
+        type=enums.PERM_TYPE_OBJECT,
+        content_type=get_content_type(Article),
+        object_id=article.pk,
+        codename='add',
+    )
+    Perm.objects.create_from_str('object.articles.Article.add', obj_id=article.pk)
+
+    # creating multiple permissions for a single object at once is supported
+    Perm.objects.create_from_str(perms=[
+                                    'object.articles.Article.add',
+                                    'object.articles.Article.change',
+                                    'object.articles.Article.delete',
+                                ], obj_id=article.pk)
+
+**field**
+
+- model level permission specific per model field
+- type is defined as ``fperms.enums.PERM_TYPE_FIELD``
+- it requires ``type``, ``content_type``, ``field_name`` and ``codename`` fields
+- string representation is ``'field.<app_label>.<module_name>.<field_name>.<codename>'``
+- TODO:  this permission type is not fully implemented yet
+
+.. code-block:: python
+
+    from fperms import enums
+    from fprems.utils import get_content_type
+    ...
+    article = Article.objects.get(pk=1)
+    # equivalent results:
+    Perm.objects.create(
+        type=enums.PERM_TYPE_FIELD,
+        content_type=get_content_type(Article),
+        field_name='name',
+        codename='add',
+    )
+    Perm.objects.create_from_str('field.articles.Article.name.add')
+
 Admin
 -----
 
-Flexible permisssions support django admin interface, to enable them you need to update the list of authentication backends in your project settings:
+Flexible permisssions support django admin interface, to enable them you need to first update the list of authentication backends in your project settings:
 
 .. code-block:: python
 
@@ -74,7 +236,7 @@ Flexible permisssions support django admin interface, to enable them you need to
         'fperms.backends.PermBackend',
     ]
 
-and then simply subclass the `fperms.admin.PermModelAdmin` instead of the regular `admin.ModelAdmin`
+and then simply subclass the ``fperms.admin.PermModelAdmin`` instead of the regular ``admin.ModelAdmin``:
 
 .. code-block:: python
 
@@ -88,7 +250,7 @@ and then simply subclass the `fperms.admin.PermModelAdmin` instead of the regula
     class ArticleAdmin(PermModelAdmin):
         pass
 
-To enable per-instance permission support, set `perms_per_instance` property of the admin class to `True`.
+To enable per-instance permission support, set ``perms_per_instance`` property of the admin class to ``True``.
 
 .. code-block:: python
 
@@ -100,12 +262,8 @@ To enable per-instance permission support, set `perms_per_instance` property of 
 
 User still needs model level permission for each model it should be able to access via admin site.
 
-If the `perms_per_instance` option is set to `True`, author of a new instance will automatically receive the permission to update and delete said instance. 
-You can override this behavior by setting `perms_per_instance_author_change` and `perms_per_instance_author_delete` admin properties respectively to `False`.
-
-
-Usage
------
+If the ``perms_per_instance`` option is set to ``True``, author of a new instance will automatically receive the permission to update and delete said instance. 
+You can override this behavior by setting ``perms_per_instance_author_change`` and ``perms_per_instance_author_delete`` admin properties respectively to ``False``.
 
 Running Tests
 -------------
