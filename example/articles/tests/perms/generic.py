@@ -1,5 +1,5 @@
 from fperms import get_perm_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from .base import ArticleUserPermTestCase, ArticleGroupPermTestCase
 
@@ -44,6 +44,11 @@ class ArticleUserGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleUserPe
         self.assertTrue(self.user.perms.has_perm(export_perm))
 
     def test_fail_add_generic_perm_non_existent_codename(self):
+        with self.assertRaises(Perm.DoesNotExist):
+            self.user.perms.add('generic.export')
+
+    @override_settings(PERM_AUTO_CREATE=True)
+    def test_auto_create_generic_perm(self):
         with self.assertRaises(Perm.DoesNotExist):
             self.user.perms.add('generic.export')
 

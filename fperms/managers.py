@@ -90,6 +90,7 @@ class PermRelatedManager:
 
     def _add(self, perm, obj):
         # add a permission to the related group or user
+        perm = get_perm(perm, obj)
         obj_perm, _ = self.perm_model.objects.get_or_create(**{
             self.perm_holder_slug: self.perm_holder,
             'perm': get_perm(perm, obj),

@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 
 from fperms import get_perm_model, enums
+from fperms.conf import settings
 
 
 def is_obj_persisted(obj):
@@ -22,8 +23,12 @@ def get_perm(perm, obj=None):
     try:
         perm = perm_model.objects.get(**perm_kwargs)
     except perm_model.DoesNotExist:
-        # check if a wildcard permission exists instead
-        perm_kwargs['codename'] = enums.PERM_CODENAME_WILDCARD
-        perm = perm_model.objects.get(**perm_kwargs)
+        if settings.PERM_AUTO_CREATE:
+            # create the required perm if it doesn't exist and is supposed to be created
+            perm = perm_model.objects.create(**perm_kwargs)
+        else:
+            # check if a wildcard permission exists instead
+            perm_kwargs['codename'] = enums.PERM_CODENAME_WILDCARD
+            perm = perm_model.objects.get(**perm_kwargs)
 
     return perm

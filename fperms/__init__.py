@@ -8,7 +8,7 @@ from fperms.exceptions import ImproperlyConfigured
 
 def get_perm_model():
     """
-    Returns the User model that is active in this project.
+    Returns the Perm model that is active in this project.
     """
     try:
         return django_apps.get_model(settings.PERM_MODEL, require_ready=False)
