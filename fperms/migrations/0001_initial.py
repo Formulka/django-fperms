@@ -1,4 +1,5 @@
 from django.conf import settings
+from fperms.conf import settings as fperms_settings
 from django.db import migrations, models
 import django.db.models.deletion
 
@@ -9,6 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        migrations.swappable_dependency(fperms_settings.PERM_MODEL),
         ('auth', '0008_alter_user_username_max_length'),
         ('contenttypes', '0002_remove_content_type_name'),
     ]
@@ -47,7 +49,7 @@ class Migration(migrations.Migration):
             name='UserPerm',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('perm', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_perms', to='fperms.Perm')),
+                ('perm', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_perms', to=fperms_settings.PERM_MODEL)),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_perms', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -59,7 +61,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='groupperm',
             name='perm',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_perms', to='fperms.Perm'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_perms', to=fperms_settings.PERM_MODEL),
         ),
         migrations.AlterUniqueTogether(
             name='userperm',

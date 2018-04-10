@@ -107,13 +107,13 @@ class PermRelatedManager:
 
         return obj_perms
 
-    def remove(self, perm, obj=None):
+    def delete(self, perm, obj=None):
         # remove a permission from the related group or user
-        return self.get_perm(perm, obj=obj).remove()
+        return self.get_perm(perm, obj=obj).delete()
 
     def clear(self):
         # remove all permissions from the related group or user
-        self.all().remove()
+        self.all().delete()
 
     def get_perm(self, perm, obj=None):
         # get a permission if it belongs to group or user
