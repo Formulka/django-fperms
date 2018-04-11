@@ -3,10 +3,10 @@
 language: python
 
 python:
-  - "3.5"
+  - "3.6.5"
 
 env:
-  - TOX_ENV=py35-django-111
+  - TOX_ENV=py36-django-111
 
 matrix:
   fast_finish: true
