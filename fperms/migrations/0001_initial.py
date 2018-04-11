@@ -17,18 +17,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='GroupPerm',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_perms', to='auth.Group')),
-            ],
-            options={
-                'verbose_name': 'group perm',
-                'ordering': ('group',),
-                'verbose_name_plural': 'group perms',
-            },
-        ),
-        migrations.CreateModel(
             name='Perm',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -46,6 +34,19 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='GroupPerm',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('perm', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_perms', to=fperms_settings.PERM_MODEL)),
+                ('group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_perms', to='auth.Group')),
+            ],
+            options={
+                'verbose_name': 'group perm',
+                'ordering': ('group',),
+                'verbose_name_plural': 'group perms',
+            },
+        ),
+        migrations.CreateModel(
             name='UserPerm',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -57,11 +58,6 @@ class Migration(migrations.Migration):
                 'ordering': ('user',),
                 'verbose_name_plural': 'user perms',
             },
-        ),
-        migrations.AddField(
-            model_name='groupperm',
-            name='perm',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_perms', to=fperms_settings.PERM_MODEL),
         ),
         migrations.AlterUniqueTogether(
             name='userperm',
