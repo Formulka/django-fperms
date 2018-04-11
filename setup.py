@@ -54,7 +54,9 @@ setup(
         'fperms',
     ],
     include_package_data=True,
-    install_requires=["django-model-utils>=2.0",],
+    install_requires=[
+        "django<2",
+    ],
     license="MIT",
     zip_safe=False,
     keywords='django-fperms',
@@ -66,7 +68,7 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6.5',
     ],
 
 )

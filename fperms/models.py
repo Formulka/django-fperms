@@ -210,6 +210,7 @@ class UserPerm(models.Model):
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
         related_name='user_perms',
     )
     perm = models.ForeignKey(
@@ -237,8 +238,16 @@ class UserPerm(models.Model):
 
 class GroupPerm(models.Model):
 
-    group = models.ForeignKey(Group, related_name='group_perms')
-    perm = models.ForeignKey(perm_settings.PERM_MODEL, on_delete=models.CASCADE, related_name='group_perms')
+    group = models.ForeignKey(
+        Group,
+        on_delete=models.CASCADE,
+        related_name='group_perms'
+    )
+    perm = models.ForeignKey(
+        perm_settings.PERM_MODEL,
+        on_delete=models.CASCADE,
+        related_name='group_perms'
+    )
 
     perm_holder_slug = PERM_GROUP_SLUG
 
