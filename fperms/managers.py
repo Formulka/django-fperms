@@ -6,8 +6,8 @@ from fperms import get_perm_model, enums
 from fperms.utils import get_perm
 
 
-PERM_USER_SLUG = 'user'
-PERM_GROUP_SLUG = 'group'
+PERM_USER_SLUG = 'users'
+PERM_GROUP_SLUG = 'groups'
 
 
 class PermManagerMetaclass(type):
@@ -57,69 +57,33 @@ class PermManager(models.Manager, metaclass=PermManagerMetaclass):
         return self.get_queryset().filter(perm_type=perm_type)
 
 
-class PermRelatedManager:
-    # Fake perms manager for group and user
+class BasePermManager(models.Manager):
 
-    perm_model = None
-    perm_holder = None
-    perm_holder_slug = None
-
-    def __init__(self, perm_holder, perm_model):
-        self.perm_model = perm_model
-        self.perm_holder = perm_holder
-        self.perm_holder_slug = perm_model.perm_holder_slug
-
-    def get_queryset(self):
-        return self.perm_model.objects.filter(**{
-            self.perm_holder_slug: self.perm_holder,
-        })
-
-    def all(self):
+    def all_perms(self):
         # get all permissions for related group or user
-        all_perm_cache_name = 'all_perm_cache'
-        if not hasattr(self, all_perm_cache_name):
-            perm_pks = set(self.get_queryset().values_list('perm__pk', flat=True))
-
+        all_perms_cache_name = 'all_perms_cache'
+        if not hasattr(self, all_perms_cache_name):
+            perm_pks = set(self.all().values_list('pk', flat=True))
             # If the related object is a user, add permissions from its groups
-            if self.perm_holder_slug == PERM_USER_SLUG:
-                for group in self.perm_holder.groups.all():
+            if self.query_field_name == PERM_USER_SLUG:
+                for group in self.instance.groups.all():
                     perm_pks.update(set(group.perms.all().values_list('pk', flat=True)))
 
-            setattr(self, all_perm_cache_name, get_perm_model().objects.filter(pk__in=perm_pks))
-        return getattr(self, all_perm_cache_name)
+            setattr(self, all_perms_cache_name, self.model.objects.filter(pk__in=perm_pks))
+        return getattr(self, all_perms_cache_name)
 
-    def _add(self, perm, obj):
-        # add a permission to the related group or user
-        perm = get_perm(perm, obj)
-        obj_perm, _ = self.perm_model.objects.get_or_create(**{
-            self.perm_holder_slug: self.perm_holder,
-            'perm': get_perm(perm, obj),
-        })
-        return obj_perm
-
-    def add(self, perms, obj=None):
-        if isinstance(perms, str) or isinstance(perms, get_perm_model()):
-            perms = [perms]
-
+    def add_perm(self, *perms, obj=None):
         obj_perms = []
         for perm in perms:
-            obj_perms.append(self._add(perm, obj))
+            obj_perms.append(get_perm(perm, obj))
 
-        return obj_perms
-
-    def delete(self, perm, obj=None):
-        # remove a permission from the related group or user
-        return self.get_perm(perm, obj=obj).delete()
-
-    def clear(self):
-        # remove all permissions from the related group or user
-        self.all().delete()
+        return self.add(*obj_perms)
 
     def get_perm(self, perm, obj=None):
         # get a permission if it belongs to group or user
         perm = get_perm(perm, obj)
 
-        return self.all().get(pk=perm.pk)
+        return self.all_perms().get(pk=perm.pk)
 
     def has_perm(self, perm, obj=None):
         # determine whether a user or a group has provided permission

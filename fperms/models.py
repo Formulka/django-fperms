@@ -2,7 +2,6 @@ from functools import partialmethod
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -12,9 +11,8 @@ from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
 from fperms import enums
-from fperms.conf import settings as perm_settings
 from fperms.exceptions import ObjectNotPersisted, IncorrectContentType, IncorrectObject
-from fperms.managers import PermManager, PermRelatedManager, PERM_USER_SLUG, PERM_GROUP_SLUG
+from fperms.managers import PermManager, BasePermManager
 from fperms.utils import is_obj_persisted
 
 
@@ -67,6 +65,14 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
         max_length=100,
         null=True,
         blank=True,
+    )
+    groups = models.ManyToManyField(
+        Group,
+        related_name='perms'
+    )
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='perms',
     )
 
     objects = PermManager()
@@ -203,77 +209,8 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
 
 
 class Perm(BasePerm):
-    pass
 
-
-class UserPerm(models.Model):
-
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='user_perms',
-    )
-    perm = models.ForeignKey(
-        perm_settings.PERM_MODEL,
-        on_delete=models.CASCADE,
-        related_name='user_perms',
-    )
-
-    perm_holder_slug = PERM_USER_SLUG
+    base = BasePermManager()
 
     class Meta:
-        verbose_name = _('user perm')
-        verbose_name_plural = _('user perms')
-        ordering = ('user',)
-        unique_together = (
-            ('user', 'perm'),
-        )
-
-    def __str__(self):
-        return '%s | %s' % (
-            self.user,
-            self.perm
-        )
-
-
-class GroupPerm(models.Model):
-
-    group = models.ForeignKey(
-        Group,
-        on_delete=models.CASCADE,
-        related_name='group_perms'
-    )
-    perm = models.ForeignKey(
-        perm_settings.PERM_MODEL,
-        on_delete=models.CASCADE,
-        related_name='group_perms'
-    )
-
-    perm_holder_slug = PERM_GROUP_SLUG
-
-    class Meta:
-        verbose_name = _('group perm')
-        verbose_name_plural = _('group perms')
-        ordering = ('group',)
-        unique_together = (
-            ('group', 'perm'),
-        )
-
-    def __str__(self):
-        return '%s | %s' % (
-            self.group,
-            self.perm
-        )
-
-
-def monkey_patch_user():
-    user_model = get_user_model()
-    setattr(user_model, 'perms', property(lambda self: PermRelatedManager(self, UserPerm)))
-
-
-def monkey_patch_group():
-    setattr(Group, 'perms', property(lambda self: PermRelatedManager(self, GroupPerm)))
-
-
-monkey_patch_user()
-monkey_patch_group()
+        base_manager_name = 'base'

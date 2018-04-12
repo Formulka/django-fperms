@@ -5,7 +5,6 @@ from django.contrib.admin.views.main import ChangeList
 from django.utils.functional import cached_property
 
 from fperms import get_perm_model, enums
-from fperms.models import UserPerm, GroupPerm
 from fperms.utils import get_content_type
 
 
@@ -95,19 +94,8 @@ class PermModelAdmin(PermAdminMixin, ModelAdmin):
             return False
 
 
-class UserPermInline(admin.TabularInline):
-
-    model = UserPerm
-
-
-class GroupPermInline(admin.TabularInline):
-
-    model = GroupPerm
-
-
 class PermAdmin(ModelAdmin):
 
-    inlines = [UserPermInline, GroupPermInline]
     list_filter = ['content_type']
 
 
