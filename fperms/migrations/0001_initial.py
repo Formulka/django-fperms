@@ -27,8 +27,8 @@ class Migration(migrations.Migration):
                 ('object_id', models.SmallIntegerField(blank=True, null=True, verbose_name='object pk')),
                 ('field_name', models.CharField(blank=True, max_length=100, null=True, verbose_name='field name')),
                 ('content_type', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType', verbose_name='content type')),
-                ('groups', models.ManyToManyField(related_name='perms', to='auth.Group')),
-                ('users', models.ManyToManyField(related_name='perms', to=settings.AUTH_USER_MODEL)),
+                ('groups', models.ManyToManyField(related_name='perms', to='auth.Group', blank=True)),
+                ('users', models.ManyToManyField(related_name='perms', to=settings.AUTH_USER_MODEL, blank=True)),
             ],
             options={
                 'verbose_name': 'permission',

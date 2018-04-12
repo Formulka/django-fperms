@@ -29,7 +29,7 @@ class PermChangeList(PermAdminMixin, ChangeList):
 
         object_ids = self._perms.filter(
             object_id__isnull=False,
-            user_perms__user=request.user,
+            users__in=[request.user,],
             codename='change',
         ).values_list('object_id', flat=True)
 

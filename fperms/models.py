@@ -68,11 +68,13 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
     )
     groups = models.ManyToManyField(
         Group,
-        related_name='perms'
+        related_name='perms',
+        blank=True
     )
     users = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='perms',
+        blank=True
     )
 
     objects = PermManager()
