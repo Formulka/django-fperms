@@ -50,6 +50,7 @@ setup(
     author='Petr Olah',
     author_email='djangoguru@gmail.com',
     url='https://github.com/formulka/django-fperms',
+    download_url='https://github.com/formulka/django-fperms/archive/{}.tar.gz'.format(version),
     packages=[
         'fperms',
     ],
@@ -64,7 +65,7 @@ setup(
         'Development Status :: 3 - Alpha',
         'Framework :: Django',
         'Framework :: Django :: 1.11',
-        'Framework :: Django :: 2',
+        'Framework :: Django :: 2.0',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
