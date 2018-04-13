@@ -1,6 +1,5 @@
 from fperms import get_perm_model
 from django.test import TestCase, override_settings
-from fperms.conf import settings
 
 from .base import ArticleUserPermTestCase, ArticleGroupPermTestCase
 
@@ -33,31 +32,31 @@ class ArticleUserGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleUserPe
     def test_add_generic_perm_by_perm(self):
         perm = self._create_perm()
 
-        self.user.perms.add(perm)
+        self.user.perms.add_perm(perm)
 
         self.assertTrue(self.user.perms.has_perm(perm))
 
     def test_add_generic_perm_by_codename(self):
         export_perm = self._create_perm()
 
-        self.user.perms.add('generic.export')
+        self.user.perms.add_perm('generic.export')
 
         self.assertTrue(self.user.perms.has_perm(export_perm))
 
     def test_fail_add_generic_perm_non_existent_codename(self):
         with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('generic.export')
+            self.user.perms.add_perm('generic.export')
 
     @override_settings(PERM_AUTO_CREATE=True)
     def test_auto_create_generic_perm(self):
-        self.user.perms.add('generic.export')
+        self.user.perms.add_perm('generic.export')
 
     @override_settings(PERM_AUTO_CREATE=True)
     def test_clear_perms(self):
-        self.user.perms.add('generic.export')
-        self.user.perms.add('generic.foo')
-        self.user.perms.add('generic.bar')
-        self.user.perms.add('generic.baz')
+        self.user.perms.add_perm('generic.export')
+        self.user.perms.add_perm('generic.foo')
+        self.user.perms.add_perm('generic.bar')
+        self.user.perms.add_perm('generic.baz')
 
         self.assertEquals(self.user.perms.all().count(), 4)
 
@@ -68,7 +67,7 @@ class ArticleUserGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleUserPe
     def test_has_generic_perm_from_wildcard(self):
         self._create_perm_wildcard()
 
-        self.user.perms.add('generic.*')
+        self.user.perms.add_perm('generic.*')
 
         self.assertTrue(self.user.perms.has_perm('generic.whatever'))
 
@@ -78,7 +77,7 @@ class ArticleGroupGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleGroup
     def test_add_generic_perm_by_perm(self):
         perm = self._create_perm()
 
-        self.group.perms.add(perm)
+        self.group.perms.add_perm(perm)
 
         # test the new group perm is the created generic perm
         self.assertTrue(self.group.perms.has_perm(perm))
@@ -86,7 +85,7 @@ class ArticleGroupGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleGroup
     def test_add_generic_perm_by_codename(self):
         export_perm = self._create_perm()
 
-        self.group.perms.add('generic.export')
+        self.group.perms.add_perm('generic.export')
 
         self.assertTrue(self.group.perms.has_perm(export_perm))
 
@@ -99,4 +98,4 @@ class ArticleGroupGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleGroup
 
     def test_fail_add_generic_perm_non_existent_codename(self):
         with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('generic.export')
+            self.group.perms.add_perm('generic.export')

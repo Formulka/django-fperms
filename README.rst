@@ -99,11 +99,11 @@ You can assign existing permission via the custom ``perms`` manager available fo
     )
 
     user = User.objects.get(pk=1)
-    user.perms.add(perm_export)
-    user.perms.add(perms=[perm_export, perm_import])
+    user.perms.add_perm(perm_export)
+    user.perms.add_perm(perms=[perm_export, perm_import])
 
     group = Group.objects.get(pk=1)
-    group.perms.add(perms=['generic.export', 'generic.import'])
+    group.perms.add_perm(perms=['generic.export', 'generic.import'])
 
 By default if said permission does not exist, it will raise an exception. You can override this behavior by setting ``PERM_AUTO_CREATE`` variable in your project settings to ``True``, assigning a permission will then create it as well if it does not exist.
 
@@ -257,12 +257,12 @@ To enable per-instance permission support, set ``perms_per_instance`` property o
     ...
     @admin.register(Article)
     class ArticleAdmin(PermModelAdmin):
-        
+
         perms_per_instance = True
 
 User still needs model level permission for each model it should be able to access via admin site.
 
-If the ``perms_per_instance`` option is set to ``True``, author of a new instance will automatically receive the permission to update and delete said instance. 
+If the ``perms_per_instance`` option is set to ``True``, author of a new instance will automatically receive the permission to update and delete said instance.
 You can override this behavior by setting ``perms_per_instance_author_change`` and ``perms_per_instance_author_delete`` admin properties respectively to ``False``.
 
 Running Tests

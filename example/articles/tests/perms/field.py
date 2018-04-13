@@ -46,50 +46,50 @@ class ArticleUserFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleUserPermTe
     def test_add_field_perm_by_perm(self):
         perm = self._create_perm()
 
-        self.user.perms.add(perm)
+        self.user.perms.add_perm(perm)
 
         self.user.perms.has_perm(perm)
 
     def test_add_field_perm_by_str(self):
         add_name_perm = self._create_add_perm()
 
-        self.user.perms.add('field.articles.Article.name.add')
+        self.user.perms.add_perm('field.articles.Article.name.add')
 
         self.user.perms.has_perm(add_name_perm)
 
     def test_fail_add_field_perm_non_existent_codename(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('field.articles.Article.name.delete')
+            self.user.perms.add_perm('field.articles.Article.name.delete')
 
     def test_fail_add_field_perm_non_existent_model(self):
         self._create_perm()
         with self.assertRaises(LookupError):
-            self.user.perms.add('field.articles.Foo.name.add')
+            self.user.perms.add_perm('field.articles.Foo.name.add')
 
     def test_fail_add_field_perm_non_existent_field_name(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.user.perms.add('field.articles.Article.foo.add')
+            self.user.perms.add_perm('field.articles.Article.foo.add')
 
     def test_has_field_perm_from_wildcard(self):
         self._create_wildcard_perm()
 
-        self.user.perms.add('field.articles.Article.name.*')
+        self.user.perms.add_perm('field.articles.Article.name.*')
 
         self.assertTrue(self.user.perms.has_perm('field.articles.Article.name.whatever'))
 
     def test_fail_has_perm_non_existent_field_name(self):
         add_name_perm = self._create_add_perm()
 
-        self.user.perms.add(add_name_perm)
+        self.user.perms.add_perm(add_name_perm)
 
         self.assertFalse(self.user.perms.has_perm('field.articles.Article.foobar.add'))
 
     def test_fail_has_perm_non_existent_codename(self):
         add_name_perm = self._create_add_perm()
 
-        self.user.perms.add(add_name_perm)
+        self.user.perms.add_perm(add_name_perm)
 
         self.assertFalse(self.user.perms.has_perm('field.articles.Article.name.delete'))
 
@@ -99,14 +99,14 @@ class ArticleGroupFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleGroupPerm
     def test_add_field_perm_by_perm(self):
         perm = self._create_perm()
 
-        self.group.perms.add(perm)
+        self.group.perms.add_perm(perm)
 
         self.group.perms.has_perm(perm)
 
     def test_add_field_perm_by_str(self):
         add_name_perm = self._create_add_perm()
 
-        self.group.perms.add('field.articles.Article.name.add')
+        self.group.perms.add_perm('field.articles.Article.name.add')
 
         self.assertTrue(self.group.perms.has_perm(add_name_perm))
 
@@ -120,14 +120,14 @@ class ArticleGroupFieldPermPermTestCase(FieldPermTestCaseMixin, ArticleGroupPerm
     def test_fail_add_field_perm_non_existent_codename(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('field.articles.Article.name.delete')
+            self.group.perms.add_perm('field.articles.Article.name.delete')
 
     def test_fail_add_field_perm_non_existent_model(self):
         self._create_perm()
         with self.assertRaises(LookupError):
-            self.group.perms.add('field.articles.Foo.name.add')
+            self.group.perms.add_perm('field.articles.Foo.name.add')
 
     def test_fail_add_field_perm_non_existent_field_name(self):
         self._create_perm()
         with self.assertRaises(Perm.DoesNotExist):
-            self.group.perms.add('field.articles.Article.foo.add')
+            self.group.perms.add_perm('field.articles.Article.foo.add')
