@@ -55,7 +55,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        "django<2",
+        "django>=1.11",
     ],
     license="MIT",
     zip_safe=False,
@@ -64,11 +64,12 @@ setup(
         'Development Status :: 3 - Alpha',
         'Framework :: Django',
         'Framework :: Django :: 1.11',
+        'Framework :: Django :: 2',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6.5',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
-
 )
