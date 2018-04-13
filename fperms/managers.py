@@ -16,7 +16,7 @@ class PermManagerMetaclass(type):
         # adds magical helper methods to the perm manager to filter specified perm type
         new_class = super().__new__(mcs, name, bases, attrs)
         for perm_type in enums.PERM_TYPE_CHOICES:
-            setattr(new_class, '%s_perms' % perm_type[0],
+            setattr(new_class, '{}_perms'.format(perm_type[0]),
                     partialmethod(new_class.TYPE_perms, perm_type=perm_type[0]))
 
         return new_class
@@ -57,7 +57,7 @@ class PermManager(models.Manager, metaclass=PermManagerMetaclass):
         return self.get_queryset().filter(perm_type=perm_type)
 
 
-class BasePermManager(models.Manager):
+class RelatedPermManager(models.Manager):
 
     def all_perms(self):
         # get all permissions for related group or user

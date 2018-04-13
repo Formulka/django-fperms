@@ -4,10 +4,6 @@ from fperms.conf import settings
 from fperms import get_perm_model, enums
 
 
-def is_obj_persisted(obj):
-    return getattr(obj, 'pk', None) is not None
-
-
 def get_content_type(obj):
     return ContentType.objects.get_for_model(obj)
 

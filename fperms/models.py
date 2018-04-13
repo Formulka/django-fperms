@@ -12,8 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from fperms import enums
 from fperms.exceptions import ObjectNotPersisted, IncorrectContentType, IncorrectObject
-from fperms.managers import PermManager, BasePermManager
-from fperms.utils import is_obj_persisted
+from fperms.managers import PermManager, RelatedPermManager
 
 
 class PermMetaclass(ModelBase):
@@ -21,7 +20,7 @@ class PermMetaclass(ModelBase):
     def __new__(mcs, name, bases, attrs):
         new_class = super().__new__(mcs, name, bases, attrs)
         for perm_type in new_class.PERM_TYPE_CHOICES:
-            setattr(new_class, 'is_%s_perm' % perm_type[0],
+            setattr(new_class, 'is_{}_perm'.format(perm_type[0]),
                     partialmethod(new_class.is_TYPE_perm, perm_type=perm_type[0]))
 
         return new_class
@@ -93,21 +92,13 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
             return self.name
 
         permission_name = str(self.PERM_CODENAMES.get(self.codename, self.codename))
-        name = getattr(self, '_%s_perm_name' % self.type, '')
+        name = getattr(self, '_{}_perm_name'.format(self.type), '')
 
         return ' | '.join(('Permission', name, permission_name))
 
     @cached_property
     def model(self):
         return self.content_type.model_class()
-
-    @cached_property
-    def perm_str(self):
-        perm_str_args = [
-            self.type,
-        ] + getattr(self, '_%s_perm_str', [])
-
-        return '.'.join(perm_str_args)
 
     @classmethod
     def get_perm_kwargs(cls, perm, obj=None):
@@ -120,11 +111,11 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
             model = apps.get_model(model_name)
             if perm_type == enums.PERM_TYPE_OBJECT:
                 if not isinstance(obj, models.Model):
-                    raise IncorrectObject(_('Object %s must be a model instance') % obj)
+                    raise IncorrectObject(_('Object {} must be a model instance').format(obj))
                 if not isinstance(obj, model):
-                    raise IncorrectContentType(_('Object %s does not have a correct content type') % obj)
-                if not is_obj_persisted(obj):
-                    raise ObjectNotPersisted(_('Object %s needs to be persisted first') % obj)
+                    raise IncorrectContentType(_('Object {} does not have a correct content type').format(obj))
+                if obj.pk is None:
+                    raise ObjectNotPersisted(_('Object {} needs to be persisted first').format(obj))
 
                 object_id = obj.pk
         elif perm_type == enums.PERM_TYPE_FIELD:
@@ -158,61 +149,28 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
 
     @property
     def _model_perm_name(self):
-        return _('model %s') % (
+        return _('model {}').format(
             self.model.__name__
         )
 
     @property
     def _object_perm_name(self):
-        return _('model %s | object %s') % (
+        return _('model {} | object {}') % (
             self.model.__name__,
             self.content_object,
         )
 
     @property
     def _field_perm_name(self):
-        return _('model %s | field %s') % (
+        return _('model {} | field {}') % (
             self.model.__name__,
             self.model._meta.get_field(self.field_name).verbose_name,
         )
 
-    @property
-    def _model_perm_str_args(self):
-        return [
-            self.type,
-            self.content_type.app_label,
-            self.content_type.model,
-            self.codename,
-        ]
-
-    @property
-    def _object_perm_str_args(self):
-        return [
-            self.type,
-            self.content_type.app_label,
-            self.content_type.model,
-            str(self.object_id),
-            self.codename,
-        ]
-
-    @property
-    def _field_perm_str_args(self):
-        return [
-            self.type,
-            self.content_type.app_label,
-            self.content_type.model,
-            self.field_name,
-            self.codename,
-        ]
-
-    @property
-    def _generic_perm_str_args(self):
-        return []
-
 
 class Perm(BasePerm):
 
-    base = BasePermManager()
+    related = RelatedPermManager()
 
     class Meta:
-        base_manager_name = 'base'
+        base_manager_name = 'related'

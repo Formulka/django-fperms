@@ -72,7 +72,6 @@ class ArticleUserObjectPermPermTestCase(ObjectPermTestCaseMixin, ArticleUserPerm
 
     def test_has_model_perm_from_wildcard(self):
         self._create_wildcard_perm()
-        print(self.article)
         self.user.perms.add_perm('object.articles.Article.*', obj=self.article)
 
         self.assertTrue(self.user.perms.has_perm('object.articles.Article.whatever', self.article))

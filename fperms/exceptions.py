@@ -14,9 +14,5 @@ class IncorrectContentType(PermError):
     pass
 
 
-class PermNotUnique(PermError):
-    pass
-
-
 class ImproperlyConfigured(PermError):
     pass

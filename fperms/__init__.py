@@ -16,5 +16,5 @@ def get_perm_model():
         raise ImproperlyConfigured("PERM_MODEL must be of the form 'app_label.model_name'")
     except LookupError:
         raise ImproperlyConfigured(
-            "PERM_MODEL refers to model '%s' that has not been installed" % settings.PERM_MODEL
+            "PERM_MODEL refers to model '{}' that has not been installed".format(settings.PERM_MODEL)
         )

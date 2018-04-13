@@ -11,6 +11,12 @@ from fperms.utils import get_content_type
 Perm = get_perm_model()
 
 
+class Codename:
+    ADD = 'add'
+    CHANGE = 'change'
+    DELETE = 'delete'
+
+
 class PermAdminMixin:
 
     @cached_property
@@ -47,7 +53,7 @@ class PermModelAdmin(PermAdminMixin, ModelAdmin):
 
         # add the change and delete permissions for the author of a new model instance
         if not change and self.perms_per_instance:
-            for codename in ('change', 'delete'):
+            for codename in (Codename.CHANGE, Codename.DELETE):
                 if hasattr(self, 'perms_per_instance_author_'+codename):
                     self.add_perm(request.user, codename, obj)
 
@@ -59,15 +65,15 @@ class PermModelAdmin(PermAdminMixin, ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         if self.perms_per_instance:
-            return self.has_perm(request.user, 'change', obj=obj)
+            return self.has_perm(request.user, Codename.CHANGE, obj=obj)
 
-        return self.has_perm(request.user, 'change')
+        return self.has_perm(request.user, Codename.CHANGE)
 
     def has_delete_permission(self, request, obj=None):
         if self.perms_per_instance:
-            return self.has_perm(request.user, 'delete', obj=obj)
+            return self.has_perm(request.user, Codename.DELETE, obj=obj)
 
-        return self.has_perm(request.user, 'delete')
+        return self.has_perm(request.user, Codename.DELETE)
 
     def add_perm(self, user, codename, obj):
         object_id = obj.pk if obj is not None else None
