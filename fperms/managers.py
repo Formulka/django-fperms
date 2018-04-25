@@ -87,6 +87,9 @@ class RelatedPermManager(models.Manager):
 
     def has_perm(self, perm, obj=None):
         # determine whether a user or a group has provided permission
+        if hasattr(self.instance, 'is_superuser') and self.instance.is_superuser:
+            return True
+
         if perm is None:
             return False
         try:

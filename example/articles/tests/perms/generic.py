@@ -71,6 +71,14 @@ class ArticleUserGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleUserPe
 
         self.assertTrue(self.user.perms.has_perm('generic.whatever'))
 
+    def test_has_generic_perm_from_being_superuser(self):
+        self._create_perm_wildcard()
+
+        self.user.is_superuser = True
+        self.user.save()
+
+        self.assertTrue(self.user.perms.has_perm('generic.whatever'))
+
 
 class ArticleGroupGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleGroupPermTestCase):
 
