@@ -72,12 +72,17 @@ class RelatedPermManager(models.Manager):
             setattr(self, all_perms_cache_name, self.model.objects.filter(pk__in=perm_pks))
         return getattr(self, all_perms_cache_name)
 
-    def add_perm(self, *perms, obj=None):
+    def get_perms(self, *perms, obj=None):
         obj_perms = []
         for perm in perms:
             obj_perms.append(get_perm(perm, obj))
+        return obj_perms
 
-        return self.add(*obj_perms)
+    def add_perm(self, *perms, obj=None):
+        return self.add(*self.get_perms(*perms, obj=obj))
+
+    def remove_perm(self, *perms, obj=None):
+        return self.remove(*self.get_perms(*perms, obj=obj))
 
     def get_perm(self, perm, obj=None):
         # get a permission if it belongs to group or user

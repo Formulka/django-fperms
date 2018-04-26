@@ -64,6 +64,24 @@ class ArticleUserGenericPermPermTestCase(GenericPermTestCaseMixin, ArticleUserPe
 
         self.assertEquals(self.user.perms.all().count(), 0)
 
+    @override_settings(PERM_AUTO_CREATE=True)
+    def test_remove_generic_perm_by_codename(self):
+        self.user.perms.add_perm('generic.export')
+        self.assertTrue(self.user.perms.has_perm('generic.export'))
+
+        self.user.perms.remove_perm('generic.export')
+        self.assertFalse(self.user.perms.has_perm('generic.export'))
+
+    @override_settings(PERM_AUTO_CREATE=True)
+    def test_remove_generic_perm_by_perm(self):
+        export_perm = self._create_perm()
+
+        self.user.perms.add_perm(export_perm)
+        self.assertTrue(self.user.perms.has_perm(export_perm))
+
+        self.user.perms.remove_perm(export_perm)
+        self.assertFalse(self.user.perms.has_perm(export_perm))
+
     def test_has_generic_perm_from_wildcard(self):
         self._create_perm_wildcard()
 
