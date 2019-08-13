@@ -53,18 +53,12 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
         blank=True,
         null=True,
     )
-    object_id = models.SmallIntegerField(
+    object_id = models.TextField(
         _('object pk'),
         null=True,
         blank=True,
     )
     content_object = GenericForeignKey()
-    field_name = models.CharField(
-        _('field name'),
-        max_length=100,
-        null=True,
-        blank=True,
-    )
     groups = models.ManyToManyField(
         Group,
         related_name='perms',
@@ -82,7 +76,7 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
         abstract = True
         verbose_name = _('permission')
         verbose_name_plural = _('permissions')
-        ordering = ('content_type', 'object_id', 'field_name', 'codename',)
+        ordering = ('codename',)
         unique_together = (
             ('type', 'codename', 'content_type', 'object_id', 'field_name'),
         )

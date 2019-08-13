@@ -1,4 +1,4 @@
-__version__ = '0.4.2'
+__version__ = '0.4.4'
 
 from django.apps import apps as django_apps
 from fperms.conf import settings
