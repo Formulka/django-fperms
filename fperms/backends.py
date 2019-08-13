@@ -43,4 +43,4 @@ class PermBackend(ModelBackend):
 
         ctypes = ContentType.objects.filter(app_label=app_label)
 
-        return Perm.objects.filter(users__in=[user_obj,], content_type__in=ctypes)
+        return Perm.objects.filter(users=user_obj, content_type__in=ctypes)

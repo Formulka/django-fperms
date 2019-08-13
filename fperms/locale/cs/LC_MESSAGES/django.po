@@ -1,0 +1,79 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-05 17:17+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+msgid "codename"
+msgstr "codename"
+
+msgid "name"
+msgstr "název"
+
+msgid "content type"
+msgstr "typ"
+
+msgid "object pk"
+msgstr "ID objektu"
+
+msgid "permission"
+msgstr "právo"
+
+msgid "permissions"
+msgstr "práva"
+
+msgid "Object {} must be a model instance"
+msgstr "Objekt {} musí být instance modelu"
+
+msgid "Object {} does not have a correct content type"
+msgstr "Objekt {} nemá správný typ"
+
+msgid "Object {} needs to be persisted first"
+msgstr "Objekt {} potřebuje být nejprve uložen"
+
+msgid "model {}"
+msgstr "model {}"
+
+msgid "model {} | object {}"
+msgstr "model {} | objekt {}"
+
+msgid "model {} | field {}"
+msgstr "model {} | pole {}"
+
+msgid "add"
+msgstr "přidat"
+
+msgid "change"
+msgstr "upravit"
+
+msgid "delete"
+msgstr "smazat"
+
+msgid "wildcard"
+msgstr "wildcard"
+
+msgid "generic"
+msgstr "generické"
+
+msgid "model"
+msgstr "model"
+
+msgid "object"
+msgstr "objekt"
+
+msgid "field"
+msgstr "pole"
