@@ -56,7 +56,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        "django>=1.11",
+        "django>=2.2.15",
     ],
     license="MIT",
     zip_safe=False,
