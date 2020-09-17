@@ -20,7 +20,7 @@ def get_perm_from_permission_codename(permission_codename):
         content_type=get_content_type(model),
         codename=action,
         object_id=None,
-        field_name=None,
+        name=None,
     )
 
 

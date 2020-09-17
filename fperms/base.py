@@ -1,18 +1,21 @@
 from functools import partialmethod
 
 from django.apps import apps
-from django.conf import settings
-from django.contrib.auth.models import Group
+from django.conf import settings as django_settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.base import ModelBase
 from django.utils.functional import cached_property
+from django.utils.translation import ugettext
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ValidationError
 
 from fperms import enums
+from fperms.conf import settings
 from fperms.exceptions import ObjectNotPersisted, IncorrectContentType, IncorrectObject
 from fperms.managers import PermManager, RelatedPermManager
+from fperms import get_perm_model
 
 
 class PermMetaclass(ModelBase):
@@ -59,14 +62,10 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
         blank=True,
     )
     content_object = GenericForeignKey()
-    groups = models.ManyToManyField(
-        Group,
-        related_name='perms',
-        blank=True
-    )
     users = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name='perms',
+        django_settings.AUTH_USER_MODEL,
+        verbose_name=_('users'),
+        related_name='fperms',
         blank=True
     )
 
@@ -98,7 +97,7 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
     def get_perm_kwargs(cls, perm, obj=None):
         perm_type, perm_arg_string = perm.split('.', 1)
 
-        model = content_type = object_id = field_name = None
+        model = content_type = object_id = None
 
         if perm_type == enums.PERM_TYPE_MODEL or perm_type == enums.PERM_TYPE_OBJECT:
             model_name, codename = perm_arg_string.rsplit('.', 1)
@@ -112,9 +111,6 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
                     raise ObjectNotPersisted(_('Object {} needs to be persisted first').format(obj))
 
                 object_id = obj.pk
-        elif perm_type == enums.PERM_TYPE_FIELD:
-            model_name, field_name, codename = perm_arg_string.rsplit('.', 2)
-            model = apps.get_model(model_name)
         else:
             codename = perm_arg_string
 
@@ -125,8 +121,7 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
             type=perm_type,
             codename=codename,
             content_type=content_type,
-            object_id=object_id,
-            field_name=field_name,
+            object_id=object_id
         )
 
     def get_wildcard_perm(self):
@@ -134,8 +129,7 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
             type=self.type,
             codename=enums.PERM_CODENAME_WILDCARD,
             content_type=self.content_type,
-            object_id=self.object_id,
-            field_name=self.field_name,
+            object_id=self.object_id
         )
 
     def is_TYPE_perm(self, perm_type):
@@ -149,14 +143,50 @@ class BasePerm(models.Model, metaclass=PermMetaclass):
 
     @property
     def _object_perm_name(self):
-        return _('model {} | object {}') % (
+        return _('model {} | object {}').format(
             self.model.__name__,
             self.content_object,
         )
 
-    @property
-    def _field_perm_name(self):
-        return _('model {} | field {}') % (
-            self.model.__name__,
-            self.model._meta.get_field(self.field_name).verbose_name,
-        )
+
+class Group(models.Model):
+
+    codename = models.CharField(
+        _('codename'),
+        max_length=100,
+        unique=True,
+        null=True,
+        blank=True
+    )
+    name = models.CharField(
+        _('name'),
+        max_length=255,
+        null=False,
+        blank=False,
+    )
+    fperms = models.ManyToManyField(
+        settings.PERM_MODEL,
+        verbose_name=_('permissions'),
+        related_name='fgroups',
+        blank=True
+    )
+    fgroups = models.ManyToManyField(
+        'Group',
+        verbose_name=_('groups'),
+        blank=True,
+        related_name='parents',
+    )
+    users = models.ManyToManyField(
+        django_settings.AUTH_USER_MODEL,
+        verbose_name=_('users'),
+        related_name='fgroups',
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = _('permission group')
+        verbose_name_plural = _('permission groups')
+        ordering = ('codename',)
+
+    def __str__(self):
+        return self.name

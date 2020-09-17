@@ -1,13 +1,17 @@
-from functools import partialmethod
+import operator
+
+from functools import partialmethod, reduce
 
 from django.db import models
+from django.db.models import Q
 
 from fperms import get_perm_model, enums
+from fperms.conf import settings
 from fperms.utils import get_perm
 
 
 PERM_USER_SLUG = 'users'
-PERM_GROUP_SLUG = 'groups'
+PERM_GROUP_SLUG = 'fgroups'
 
 
 class PermManagerMetaclass(type):
@@ -59,18 +63,25 @@ class PermManager(models.Manager, metaclass=PermManagerMetaclass):
 
 class RelatedPermManager(models.Manager):
 
-    def all_perms(self):
-        # get all permissions for related group or user
-        all_perms_cache_name = 'all_perms_cache'
-        if not hasattr(self, all_perms_cache_name):
-            perm_pks = set(self.all().values_list('pk', flat=True))
-            # If the related object is a user, add permissions from its groups
-            if self.query_field_name == PERM_USER_SLUG:
-                for group in self.instance.groups.all():
-                    perm_pks.update(set(group.perms.all().values_list('pk', flat=True)))
+    def _get_all_group_fperms(self, group):
+        perm_pks = set(group.fperms.all().values_list('pk', flat=True))
+        for subgroup in group.fgroups.all():
+            perm_pks.update(self._get_all_group_fperms(subgroup))
+        return perm_pks
 
-            setattr(self, all_perms_cache_name, self.model.objects.filter(pk__in=perm_pks))
-        return getattr(self, all_perms_cache_name)
+    def all_perms(self):
+        if self.query_field_name == PERM_USER_SLUG:
+            q_list = [Q(users=self.instance), Q(fgroups__users=self.instance)]
+            for i in range(1, settings.PERM_GROUP_MAX_LEVEL + 1):
+                q_list.append(Q(**{'fgroups__{}__users'.format('__'.join(i * ['parents'])): self.instance}))
+        else:
+            q_list = [Q(fgroups=self.instance)]
+            for i in range(1, settings.PERM_GROUP_MAX_LEVEL + 1):
+                q_list.append(Q(**{'fgroups__{}'.format('__'.join(i * ['parents'])): self.instance}))
+
+        return self.model.objects.filter(
+            pk__in=self.model.objects.filter(reduce(operator.or_, q_list)).values('pk')
+        )
 
     def get_perms(self, *perms, obj=None):
         obj_perms = []
@@ -84,22 +95,13 @@ class RelatedPermManager(models.Manager):
     def remove_perm(self, *perms, obj=None):
         return self.remove(*self.get_perms(*perms, obj=obj))
 
-    def get_perm(self, perm, obj=None):
-        # get a permission if it belongs to group or user
-        perm = get_perm(perm, obj)
-
-        return self.all_perms().get(pk=perm.pk)
-
     def has_perm(self, perm, obj=None):
         # determine whether a user or a group has provided permission
         if hasattr(self.instance, 'is_superuser') and self.instance.is_superuser:
             return True
 
+        perm = get_perm(perm, obj)
         if perm is None:
             return False
-        try:
-            self.get_perm(perm, obj)
-        except get_perm_model().DoesNotExist:
-            return False
-
-        return True
+        else:
+            return self.all_perms().filter(pk=get_perm(perm, obj).pk).exists()

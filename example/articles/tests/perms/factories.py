@@ -30,7 +30,7 @@ class GroupFactory(factory.DjangoModelFactory):
     name = factory.Sequence(lambda n: 'Group{0}'.format(n))
 
     class Meta:
-        model = 'auth.Group'
+        model = 'fperms.Group'
 
 
 class ArticleFactory(factory.DjangoModelFactory):

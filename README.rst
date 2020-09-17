@@ -6,10 +6,10 @@ django-fperms
     :target: https://badge.fury.io/py/django-fperms
 
 .. image:: https://travis-ci.org/Formulka/django-fperms.svg?branch=master
-    :target: https://travis-ci.org/Formulka/django-fperms
+    :target: https://travis-ci.org/druids/django-fperms
 
 .. image:: https://codecov.io/gh/Formulka/django-fperms/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/Formulka/django-fperms
+    :target: https://codecov.io/gh/druids/django-fperms
 
 The flexible permissions library uses a custom permission model, that when installed patches itself into the standard django authentication library.
 
@@ -99,11 +99,11 @@ You can assign existing permission via the custom ``perms`` manager available fo
     )
 
     user = User.objects.get(pk=1)
-    user.perms.add_perm(perm_export)
-    user.perms.add_perm(perms=[perm_export, perm_import])
+    user.fperms.add_perm(perm_export)
+    user.fperms.add_perm(perms=[perm_export, perm_import])
 
     group = Group.objects.get(pk=1)
-    group.perms.add_perm(perms=['generic.export', 'generic.import'])
+    group.fperms.add_perm(perms=['generic.export', 'generic.import'])
 
 By default if said permission does not exist, it will raise an exception. You can override this behavior by setting ``PERM_AUTO_CREATE`` variable in your project settings to ``True``, assigning a permission will then create it as well if it does not exist.
 
@@ -128,8 +128,8 @@ You can check whether the user or group has a required permission via ``has_perm
         codename='export',
     )
 
-    assert user.perms.has_perm(perm)
-    assert user.perms.has_perm('generic.export')
+    assert user.fperms.has_perm(perm)
+    assert user.fperms.has_perm('generic.export')
 
 Built in perm types
 -------------------
@@ -205,8 +205,8 @@ Built in perm types
 
 - model level permission specific per model field
 - type is defined as ``fperms.enums.PERM_TYPE_FIELD``
-- it requires ``type``, ``content_type``, ``field_name`` and ``codename`` fields
-- string representation is ``'field.<app_label>.<module_name>.<field_name>.<codename>'``
+- it requires ``type``, ``content_type``, ``name`` and ``codename`` fields
+- string representation is ``'field.<app_label>.<module_name>.<name>.<codename>'``
 - TODO:  this permission type is not fully implemented yet
 
 .. code-block:: python
@@ -219,7 +219,7 @@ Built in perm types
     Perm.objects.create(
         type=enums.PERM_TYPE_FIELD,
         content_type=get_content_type(Article),
-        field_name='name',
+        name='name',
         codename='add',
     )
     Perm.objects.create_from_str('field.articles.Article.name.add')

@@ -3,7 +3,7 @@ from django.test import TestCase, Client
 
 from articles.models import Article
 
-from .factories import UserFactory, GroupFactory
+from .factories import GroupFactory, UserFactory
 
 
 class ArticleTestCase(TestCase):

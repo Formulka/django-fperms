@@ -6,6 +6,7 @@ DEFAULTS = {
     'PERM_CODENAMES': {},
     'PERM_MODEL': 'fperms.Perm',
     'PERM_AUTO_CREATE': False,
+    'PERM_GROUP_MAX_LEVEL': 1,
 }
 
 

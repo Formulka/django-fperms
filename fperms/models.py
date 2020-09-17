@@ -1,4 +1,4 @@
-from fperms.base import BasePerm
+from fperms.base import BasePerm, Group
 from fperms.managers import RelatedPermManager
 
 

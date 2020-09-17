@@ -11,7 +11,7 @@ def get_content_type(obj):
 def get_perm(perm, obj=None):
     perm_model = get_perm_model()
 
-    if isinstance(perm, perm_model):
+    if perm is None or isinstance(perm, perm_model):
         return perm
 
     perm_kwargs = perm_model.get_perm_kwargs(perm, obj)

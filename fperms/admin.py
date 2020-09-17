@@ -35,7 +35,7 @@ class PermChangeList(PermAdminMixin, ChangeList):
 
         object_ids = self._perms.filter(
             object_id__isnull=False,
-            users__in=[request.user,],
+            users__in=[request.user],
             codename='change',
         ).values_list('object_id', flat=True)
 
@@ -85,7 +85,7 @@ class PermModelAdmin(PermAdminMixin, ModelAdmin):
         }
 
         perm, _ = Perm.objects.get_or_create(**perm_kwargs)
-        user.perms.add(perm)
+        user.fperms.add(perm)
 
     def has_perm(self, user, codename=None, obj=None):
         if user.is_superuser:
@@ -95,7 +95,7 @@ class PermModelAdmin(PermAdminMixin, ModelAdmin):
 
         try:
             perm = self._perms.get(codename=codename, object_id=object_id)
-            return user.perms.has_perm(perm)
+            return user.fperms.has_perm(perm)
         except Perm.DoesNotExist:
             return False
 
